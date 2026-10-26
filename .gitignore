@@ -1,0 +1,49 @@
+# Python cache / compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment files / secrets
+.env
+.env.*
+!.env.example
+
+# Local database and SQLite files
+gym.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Flask / local runtime files
+instance/
+flask_session/
+
+# Logs
+*.log
+
+# IDE / editor files
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Git metadata and archives
+.git/
+*.zip
