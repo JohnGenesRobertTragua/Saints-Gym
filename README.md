@@ -1,45 +1,109 @@
 # Saints Gym Management System
 
-A Flask and SQLite-based gym management application created as a software portfolio project.
+A Flask and SQLite-based gym management application developed as a software portfolio project.
 
-## Features
+**Author:** John Genes Robert Tragua  
+**Role:** Computer Engineer
+
+---
+
+## 1. Project Overview and Features
+
+Saints Gym Management System provides a web-based interface for common gym check-in and staff administration workflows. It is built with Flask, SQLite, HTML, CSS, and JavaScript, with responsive pages for desktop and mobile use.
+
+### Features
 
 - Staff login and administrative dashboard
 - Member registration and member management
 - Member and guest check-in/check-out workflows
-- Attendance history and dashboard reporting
-- Staff account recovery/settings workflows
-- Responsive pages and phone-oriented styling
+- Attendance history with search, date filtering, and sorting
+- Dashboard attendance summaries and reporting
+- Staff account recovery and settings workflows
+- Notifications for pending membership registration requests
+- Customer check-in QR-code page
+- Responsive, phone-oriented customer pages
 - SQLite database integration
 
-## Technology Stack
+---
 
-- Python
-- Flask
-- SQLite
-- HTML, CSS, and JavaScript
-- Waitress for local serving; Gunicorn configuration is included for supported hosting environments
+## 2. Technology Stack
 
-## Run locally
+- **Python** — application logic
+- **Flask** — web application framework
+- **SQLite** — local relational database
+- **HTML** — page structure
+- **CSS** — layout and styling
+- **JavaScript** — browser-side interactions
+- **Waitress** — local serving through the included server launcher
+- **Gunicorn configuration** — included for supported hosting environments
 
-1. Install Python 3.10 or newer.
-2. Clone or download this repository.
-3. Open a terminal in this folder and create a virtual environment:
+---
+
+## 3. Screenshot Gallery
+
+The screenshots below are stored in the repository's `screenshots/` folder. The image paths use the actual filenames in that folder.
+
+### Customer pages
+
+| Home page | Guest check-in |
+|---|---|
+| ![Saints Gym home page](screenshots/home.png) | ![Guest check-in](screenshots/guest-checkin.png) |
+
+| Member check-in | Member registration |
+|---|---|
+| ![Member check-in](screenshots/member-checkin.png) | ![Member registration](screenshots/registration.png) |
+
+| Check-out options | Member check-out |
+|---|---|
+| ![Check-out options](screenshots/check-out.png) | ![Member check-out](screenshots/member_check-out.png) |
+
+| Guest check-out | Staff login |
+|---|---|
+| ![Guest check-out](screenshots/guest_check-out.png) | ![Staff login](screenshots/staff-login.png) |
+
+### Staff administration
+
+| Dashboard | Attendance history |
+|---|---|
+| ![Dashboard](screenshots/dashboard.png) | ![Attendance history](screenshots/attendance-history.png) |
+
+| Manage members | Notifications |
+|---|---|
+| ![Manage members](screenshots/manage-members.png) | ![Notifications](screenshots/notifications.png) |
+
+| Settings |
+|---|
+| ![Settings](screenshots/settings.png) |
+
+---
+
+## 4. Installation and Setup
+
+### Requirements
+
+- Python 3.10 or newer
+- Git (optional, for cloning the repository)
+
+### Windows setup
+
+1. Clone or download this repository.
+2. Open a terminal in the project folder.
+3. Create a virtual environment:
 
    ```bash
    python -m venv .venv
    ```
 
-4. Activate it on Windows:
+4. Activate the environment.
 
+   **PowerShell:**
    ```powershell
-   .venv\Scripts\Activate.ps1
+   .\.venv\Scripts\Activate.ps1
    ```
 
-   Or in Command Prompt:
-
+   **Command Prompt:**
    ```bat
-   .venv\Scripts\activate
+   .\.venv\Scripts\activate
    ```
 
 5. Install dependencies:
@@ -48,7 +112,7 @@ A Flask and SQLite-based gym management application created as a software portfo
    pip install -r requirements.txt
    ```
 
-6. Copy `.env.example` to `.env` and replace every placeholder with private values. Use a unique random `FLASK_SECRET_KEY` at least 32 characters long, a private master username, and a strong master password of at least 8 characters. Never commit `.env`.
+6. Copy `.env.example` to `.env` and replace all placeholders with private values. See the environment configuration section below. Never upload `.env`.
 7. Start the local server:
 
    ```bash
@@ -57,16 +121,44 @@ A Flask and SQLite-based gym management application created as a software portfo
 
 8. Open `http://127.0.0.1:5000` in your browser.
 
-The app creates/uses its SQLite database at the configured `SAINTS_DATABASE_PATH`; when not set, it uses `gym.db` in the project directory. The database file is intentionally excluded from this public portfolio package.
+The application uses the database path configured by `SAINTS_DATABASE_PATH`. If that variable is not set, it uses `gym.db` in the project directory. The database file is intentionally not included in this public repository; the application may create a local database when it starts.
 
-## Environment configuration
+---
 
-See `.env.example` for configuration variable names. It contains placeholders only. Do not publish real credentials, secret keys, customer data, database files, backups, or production environment files.
+## 5. Environment Configuration and Security Notes
 
-## Portfolio and privacy note
+Use `.env.example` as a template for local development. Create your own private `.env` file and replace every placeholder before starting the application.
 
-This repository is a public demonstration copy. It does not include the operational SQLite database or a real `.env` file. Use your own test data and private credentials for local testing. Before publishing, confirm you have permission to share the application code and any included branding/assets. This project has not been represented as a full independent security audit.
+Configuration variables include:
 
-## License
+- `FLASK_SECRET_KEY` — a long, randomly generated secret used to protect Flask sessions
+- `SAINTS_MASTER_USERNAME` — private master/owner username
+- `SAINTS_MASTER_PASSWORD` — private master/owner password
+- `SAINTS_HOST` — server bind address
+- `SAINTS_PORT` — server port
+- `SAINTS_THREADS` — Waitress worker-thread setting
+- `SAINTS_DATABASE_PATH` — optional path to the local SQLite database
 
-No license is specified. Add a license only after deciding what reuse permissions you want to grant.
+Security reminders:
+
+- Never commit `.env`, real credentials, secret keys, customer records, database files, backups, or production configuration.
+- Keep `.env.example` limited to placeholder values.
+- Use unique, strong private credentials for any local test instance.
+- Do not reuse credentials from a deployed or client system.
+- Review all screenshots before publishing to ensure they do not expose private information.
+- This repository is a portfolio demonstration and has not been represented as a full independent security audit.
+
+---
+
+## 6. Portfolio and Privacy Disclaimer
+
+This public repository is intended to demonstrate software development work. It does not include the operational SQLite database or a real `.env` file. Use fictional test data and private credentials when running the application locally.
+
+Before sharing or reusing the application, confirm that you have permission to publish the source code and any included branding or assets. Do not upload client records, private keys, production credentials, or other confidential information.
+
+---
+
+## 7. Author
+
+**Made by:** John Genes Robert Tragua  
+**Profession:** Computer Engineer
