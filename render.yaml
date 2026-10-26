@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: saints-gym
+    runtime: python
+    plan: 0.5c-512mb
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --worker-class gthread --workers 1 --threads 8 --timeout 0 app:app
+    healthCheckPath: /
+    envVars:
+      - key: FLASK_SECRET_KEY
+        sync: false
+      - key: SAINTS_MASTER_USERNAME
+        sync: false
+      - key: SAINTS_MASTER_PASSWORD
+        sync: false
+      - key: SAINTS_DATABASE_PATH
+        value: /var/data/gym.db
+    disk:
+      name: saints-gym-data
+      mountPath: /var/data
+      sizeGB: 1

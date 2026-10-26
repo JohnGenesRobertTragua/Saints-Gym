@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Member Management - Fitness Gym</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body class="dashboard-body">
+
+    <div class="dashboard-container">
+
+
+        <!-- ==========================================
+             PAGE HEADER
+             ========================================== -->
+
+        <div class="dashboard-header">
+
+            <div>
+
+                <h1>
+                    FITNESS GYM
+                </h1>
+
+                <p>
+                    Member Management
+                </p>
+
+            </div>
+
+
+            <div class="dashboard-user">
+
+                <span>
+                    Welcome, {{ username }}
+                </span>
+
+                <a href="{{ url_for('admin_dashboard') }}">
+                    DASHBOARD
+                </a>
+
+                <a href="/staff-logout">
+                    LOGOUT
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==========================================
+             ERROR MESSAGE
+             ========================================== -->
+
+        {% if request.args.get("error") %}
+
+            <div class="form-message error">
+
+                {{ request.args.get("error") }}
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- ==========================================
+             MEMBER MANAGEMENT PANEL
+             ========================================== -->
+
+        <div class="attendance-panel">
+
+
+            <div class="attendance-header">
+
+                <h2>
+                    Members
+                </h2>
+
+                <p>
+                    Search, edit, or delete registered members.
+                </p>
+
+            </div>
+
+
+            <!-- ==========================================
+                 SEARCH AND FILTER
+                 ========================================== -->
+
+            <div class="member-search-panel">
+
+
+                <div class="form-group">
+
+                    <label for="memberSearch">
+                        SEARCH
+                    </label>
+
+                    <input
+                        type="text"
+                        id="memberSearch"
+                        placeholder="Search members..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="searchField">
+                        SEARCH BY
+                    </label>
+
+                    <select id="searchField">
+
+                        <option value="all">
+                            All
+                        </option>
+
+                        <option value="id">
+                            Customer ID
+                        </option>
+
+                        <option value="name">
+                            Full Name
+                        </option>
+
+                        <option value="phone">
+                            Phone Number
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="clearSearch"
+                    class="secondary-button"
+                >
+                    CLEAR
+                </button>
+
+
+            </div>
+
+
+            <!-- ==========================================
+                 MEMBER TABLE
+                 ========================================== -->
+
+            <div class="table-wrapper">
+
+                <table id="memberTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                ID
+                            </th>
+
+                            <th>
+                                Full Name
+                            </th>
+
+                            <th>
+                                Phone Number
+                            </th>
+
+                            <th>
+                                Registered
+                            </th>
+
+                            <th>
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="memberTableBody">
+
+
+                        {% if members %}
+
+                            {% for member in members %}
+
+                                <tr class="member-row">
+
+
+                                    <!-- CUSTOMER ID -->
+
+                                    <td class="member-id">
+
+                                        {{ "%04d"|format(member["id"]) }}
+
+                                    </td>
+
+
+                                    <!-- FULL NAME -->
+
+                                    <td class="member-name">
+
+                                        {{ member["surname"] }},
+                                        {{ member["first_name"] }}
+
+                                    </td>
+
+
+                                    <!-- PHONE NUMBER -->
+
+                                    <td class="member-phone">
+
+                                        {{ member["phone"] }}
+
+                                    </td>
+
+
+                                    <!-- REGISTERED DATE -->
+
+                                    <td>
+
+                                        {{ member["created_at"] }}
+
+                                    </td>
+
+
+                                    <!-- ACTIONS -->
+
+                                    <td>
+
+                                        <div class="member-actions">
+
+
+                                            <!-- EDIT -->
+
+                                            <a
+                                                href="/admin/members/edit/{{ member['id'] }}"
+                                                class="edit-button"
+                                            >
+                                                EDIT
+                                            </a>
+
+
+                                            <!-- DELETE -->
+
+                                            <form
+                                                method="POST"
+                                                action="/admin/members/delete/{{ member['id'] }}"
+                                                class="delete-member-form"
+                                            >
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                                <button
+                                                    type="submit"
+                                                    class="delete-button"
+                                                >
+                                                    DELETE
+                                                </button>
+
+                                            </form>
+
+
+                                        </div>
+
+                                    </td>
+
+
+                                </tr>
+
+                            {% endfor %}
+
+
+                            <!-- NO SEARCH RESULTS -->
+
+                            <tr
+                                id="noSearchResults"
+                                style="display: none;"
+                            >
+
+                                <td
+                                    colspan="5"
+                                    class="empty-table"
+                                >
+                                    No members found.
+                                </td>
+
+                            </tr>
+
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="5"
+                                    class="empty-table"
+                                >
+                                    No registered members found.
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ==========================================
+         MEMBER SEARCH SCRIPT
+         ========================================== -->
+
+    <script>
+
+        const searchInput =
+            document.getElementById("memberSearch");
+
+        const searchField =
+            document.getElementById("searchField");
+
+        const clearSearch =
+            document.getElementById("clearSearch");
+
+        const memberRows =
+            document.querySelectorAll(".member-row");
+
+        const noSearchResults =
+            document.getElementById("noSearchResults");
+
+
+        // ==========================================
+        // FILTER MEMBERS
+        // ==========================================
+
+        function filterMembers() {
+
+            const searchText =
+                searchInput.value
+                    .toLowerCase()
+                    .trim();
+
+            const selectedField =
+                searchField.value;
+
+
+            let visibleCount = 0;
+
+
+            memberRows.forEach(function(row) {
+
+
+                const id =
+                    row.querySelector(".member-id")
+                        .textContent
+                        .toLowerCase()
+                        .trim();
+
+
+                const name =
+                    row.querySelector(".member-name")
+                        .textContent
+                        .toLowerCase()
+                        .trim();
+
+
+                const phone =
+                    row.querySelector(".member-phone")
+                        .textContent
+                        .toLowerCase()
+                        .trim();
+
+
+                let searchableText = "";
+
+
+                if (selectedField === "id") {
+
+                    searchableText = id;
+
+                }
+
+                else if (selectedField === "name") {
+
+                    searchableText = name;
+
+                }
+
+                else if (selectedField === "phone") {
+
+                    searchableText = phone;
+
+                }
+
+                else {
+
+                    searchableText =
+                        id + " " +
+                        name + " " +
+                        phone;
+
+                }
+
+
+                if (
+                    searchableText.includes(searchText)
+                ) {
+
+                    row.style.display = "";
+
+                    visibleCount++;
+
+                }
+
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+
+            if (noSearchResults) {
+
+                if (
+                    memberRows.length > 0 &&
+                    visibleCount === 0
+                ) {
+
+                    noSearchResults.style.display = "";
+
+                }
+
+                else {
+
+                    noSearchResults.style.display = "none";
+
+                }
+
+            }
+
+        }
+
+
+        // ==========================================
+        // SEARCH EVENTS
+        // ==========================================
+
+        searchInput.addEventListener(
+            "input",
+            filterMembers
+        );
+
+
+        searchField.addEventListener(
+            "change",
+            filterMembers
+        );
+
+
+        // ==========================================
+        // CLEAR SEARCH
+        // ==========================================
+
+        clearSearch.addEventListener(
+            "click",
+            function() {
+
+                searchInput.value = "";
+
+                searchField.value = "all";
+
+                filterMembers();
+
+                searchInput.focus();
+
+            }
+        );
+
+
+        // ==========================================
+        // DELETE CONFIRMATION
+        // ==========================================
+
+        const deleteForms =
+            document.querySelectorAll(
+                ".delete-member-form"
+            );
+
+
+        deleteForms.forEach(function(form) {
+
+            form.addEventListener(
+                "submit",
+                function(event) {
+
+                    const row =
+                        form.closest(".member-row");
+
+
+                    const memberName =
+                        row.querySelector(".member-name")
+                            .textContent
+                            .trim();
+
+
+                    const confirmed =
+                        confirm(
+                            "Are you sure you want to delete " +
+                            memberName +
+                            "?\n\n" +
+                            "If this member has attendance " +
+                            "records, the system will prevent " +
+                            "the deletion."
+                        );
+
+
+                    if (!confirmed) {
+
+                        event.preventDefault();
+
+                    }
+
+                }
+            );
+
+        });
+
+    </script>
+
+
+</body>
+
+</html>

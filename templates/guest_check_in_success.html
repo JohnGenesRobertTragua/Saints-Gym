@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Guest Check-In Successful</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+
+<style>
+/* ==========================================
+   SAINTS GYM CUSTOMER THEME
+   ========================================== */
+
+:root {
+    --saints-black: #0b0b0b;
+    --saints-panel: #151515;
+    --saints-panel-2: #1d1d1d;
+    --saints-gold: #d6a52b;
+    --saints-gold-light: #f1c75b;
+    --saints-gold-dark: #9c7013;
+    --saints-silver: #d6d6d6;
+    --saints-muted: #a7a7a7;
+}
+
+html {
+    background: var(--saints-black) !important;
+}
+
+body {
+    background:
+        radial-gradient(circle at 50% 25%, rgba(214,165,43,.10), transparent 30%),
+        linear-gradient(145deg, #080808 0%, #121212 52%, #080808 100%) !important;
+    color: #ffffff !important;
+    min-height: 100vh !important;
+    position: relative;
+    overflow-x: hidden;
+}
+
+
+.registration-container {
+    position: relative;
+    z-index: 1;
+    background: rgba(18, 18, 18, .97) !important;
+    border: 1px solid rgba(214, 165, 43, .34) !important;
+    border-radius: 14px !important;
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.45),
+        0 0 0 1px rgba(255,255,255,.025) inset,
+        0 0 28px rgba(214,165,43,.06) !important;
+}
+
+.gym-header {
+    text-align: center !important;
+}
+
+
+.gym-header h1,
+.gym-title {
+    color: #ffffff !important;
+    text-shadow: 0 1px 0 #000, 0 0 14px rgba(214,165,43,.10);
+    letter-spacing: .5px !important;
+}
+
+.gym-header p,
+.gym-subtitle {
+    color: var(--saints-gold-light) !important;
+}
+
+.form-group label {
+    color: #f0f0f0 !important;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+input[type="text"],
+input[type="tel"],
+input[type="password"],
+input[type="number"] {
+    background: #202020 !important;
+    color: #ffffff !important;
+    border: 1px solid #4a4a4a !important;
+    border-radius: 8px !important;
+}
+
+.form-group input::placeholder,
+input::placeholder {
+    color: #929292 !important;
+}
+
+.form-group input:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--saints-gold) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(214,165,43,.16) !important;
+}
+
+button,
+.menu-button:not(.cancel-button) {
+    background: linear-gradient(180deg, var(--saints-gold-light), var(--saints-gold)) !important;
+    color: #090909 !important;
+    border: 1px solid var(--saints-gold-light) !important;
+    border-radius: 8px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 5px 14px rgba(0,0,0,.25) !important;
+}
+
+button:hover,
+.menu-button:not(.cancel-button):hover {
+    background: linear-gradient(180deg, #f5cf69, #dcae34) !important;
+    color: #000000 !important;
+    box-shadow: 0 7px 18px rgba(214,165,43,.18) !important;
+}
+
+button:disabled {
+    background: #5a5a5a !important;
+    color: #d0d0d0 !important;
+    border-color: #666666 !important;
+    box-shadow: none !important;
+}
+
+.cancel-button {
+    background: transparent !important;
+    color: #c8c8c8 !important;
+    border: 1px solid #555555 !important;
+}
+
+.cancel-button:hover {
+    background: #252525 !important;
+    color: var(--saints-gold-light) !important;
+    border-color: var(--saints-gold) !important;
+}
+
+.check-in-message,
+.error-message {
+    color: #f0f0f0 !important;
+}
+
+small {
+    color: var(--saints-gold-light) !important;
+}
+
+a {
+    color: var(--saints-gold-light);
+}
+
+@media (max-width: 600px) {
+    .registration-container {
+        border-radius: 12px !important;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+    <div class="registration-container">
+
+        <div class="gym-header">
+
+            <h1>GUEST CHECK-IN<br>SUCCESSFUL</h1>
+
+            <p>Welcome to Saints Gym!</p>
+
+        </div>
+
+
+        <!-- FULL NAME -->
+
+        <div class="form-group">
+
+            <label>
+                Full Name
+            </label>
+
+            <input
+                type="text"
+                value="{{ full_name }}"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- PHONE NUMBER -->
+
+        <div class="form-group">
+
+            <label>
+                Phone Number
+            </label>
+
+            <input
+                type="text"
+                value="{{ phone }}"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- CHECK-IN DATE -->
+
+        <div class="form-group">
+
+            <label>
+                Check-In Date
+            </label>
+
+            <input
+                type="text"
+                value="{{ check_in_date }}"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- CHECK-IN TIME -->
+
+        <div class="form-group">
+
+            <label>
+                Check-In Time
+            </label>
+
+            <input
+                type="text"
+                value="{{ check_in_time }}"
+                readonly
+            >
+
+        </div>
+
+
+        <p
+            style="
+                text-align: center;
+                margin-bottom: 20px;
+            "
+        >
+            You are now checked in as a guest.
+        </p>
+
+
+        <!-- DONE -->
+
+        <a
+            href="/"
+            class="menu-button"
+        >
+            DONE
+        </a>
+
+    </div>
+
+</body>
+
+</html>

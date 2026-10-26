@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saints Gym - Check-In</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            --black: #090909;
+            --black-soft: #111111;
+            --panel: rgba(18, 18, 18, 0.94);
+            --gold: #d6a72c;
+            --gold-light: #f0ca62;
+            --gold-dark: #9d7415;
+            --silver: #d9d9d9;
+            --muted: #9a9a9a;
+            --border: rgba(214, 167, 44, 0.28);
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 18px 12px;
+            font-family: Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at center, rgba(214, 167, 44, 0.08), transparent 42%),
+                linear-gradient(135deg, #080808 0%, #111111 50%, #080808 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Saints Gym logo as a subtle background watermark. */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: url("{{ url_for('static', filename='saints_gym_logo.png') }}");
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: min(500px, 65vw);
+            opacity: 0.075;
+            filter: saturate(1.05);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Very subtle gold vignette. */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 35%, rgba(0, 0, 0, 0.42) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 430px;
+            padding: 20px 18px 18px;
+            text-align: center;
+            border: 1px solid rgba(214, 167, 44, 0.22);
+            border-radius: 16px;
+            background: rgba(10, 10, 10, 0.78);
+            box-shadow:
+                0 24px 70px rgba(0, 0, 0, 0.55),
+                0 0 45px rgba(214, 167, 44, 0.05);
+            backdrop-filter: blur(4px);
+        }
+
+        .gym-logo {
+            display: block;
+            width: 145px;
+            height: 118px;
+            margin: -4px auto 0;
+            object-fit: contain;
+            object-position: center;
+            filter: drop-shadow(0 7px 16px rgba(214, 167, 44, 0.20));
+        }
+
+        .gym-subtitle {
+            margin: 0 0 18px;
+            color: var(--silver);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+        }
+
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .menu-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 48px;
+            padding: 10px 16px;
+            border: 1px solid rgba(214, 167, 44, 0.45);
+            border-radius: 10px;
+            background: linear-gradient(180deg, #f1f1f1 0%, #d8d8d8 100%);
+            color: #111111;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.28);
+            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(180deg, #fff8df 0%, #e9d59b 100%);
+            box-shadow: 0 7px 22px rgba(214, 167, 44, 0.18);
+        }
+
+        .menu-button:active {
+            transform: translateY(0);
+        }
+
+        .staff-section {
+            margin-top: 19px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(214, 167, 44, 0.25);
+        }
+
+        .staff-label {
+            margin-bottom: 8px;
+            color: var(--gold-light);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+        }
+
+        .staff-login-button {
+            background: linear-gradient(180deg, #242424 0%, #151515 100%);
+            color: #ffffff;
+            border: 1px solid rgba(214, 167, 44, 0.45);
+        }
+
+        .staff-login-button:hover {
+            background: linear-gradient(180deg, #302817 0%, #17130a 100%);
+            color: #ffffff;
+        }
+
+        .cancel-button {
+            margin-top: 9px;
+            min-height: 43px;
+            background: transparent;
+            color: #9b9b9b;
+            border: 1px solid #353535;
+            box-shadow: none;
+        }
+
+        .cancel-button:hover {
+            background: rgba(214, 167, 44, 0.06);
+            color: #e5e5e5;
+            border-color: rgba(214, 167, 44, 0.35);
+            box-shadow: none;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 18px 12px;
+            }
+
+            body::before {
+                background-size: 480px;
+                opacity: 0.06;
+            }
+
+            .main-container {
+                max-width: 100%;
+                padding: 17px 14px 16px;
+                border-radius: 16px;
+            }
+
+            .gym-logo {
+                width: 135px;
+                height: 108px;
+            }
+
+            .gym-subtitle {
+                margin-bottom: 18px;
+                font-size: 12px;
+            }
+
+            .menu-button {
+                min-height: 48px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+
+    <img
+        src="{{ url_for('static', filename='saints_gym_logo.png') }}"
+        alt="Saints Gym Logo"
+        class="gym-logo"
+    >
+
+    <p class="gym-subtitle">
+        Select an option
+    </p>
+
+    <div class="menu-container">
+
+        <a href="{{ url_for('guest_check_in') }}" class="menu-button">
+            Guest Check-In
+        </a>
+
+        <a href="{{ url_for('member_check_in') }}" class="menu-button">
+            Member Check-In
+        </a>
+
+        <a href="{{ url_for('register') }}" class="menu-button">
+            Register as Member
+        </a>
+
+        <a href="{{ url_for('check_out') }}" class="menu-button">
+            Check-Out
+        </a>
+
+    </div>
+
+    <div class="staff-section">
+
+        <div class="staff-label">
+            Staff / Administration
+        </div>
+
+        <a href="{{ url_for('staff_login') }}" class="menu-button staff-login-button">
+            Staff Login
+        </a>
+
+    </div>
+
+    <a href="{{ url_for('home') }}" class="menu-button cancel-button">
+        Cancel
+    </a>
+
+</div>
+
+</body>
+</html>

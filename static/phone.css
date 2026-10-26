@@ -1,0 +1,312 @@
+/* =========================================================
+   SAINTS GYM INTERNATIONAL PHONE INPUT
+   Compact, responsive, self-contained component.
+   ========================================================= */
+
+.phone-input-wrap {
+    position: relative;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 0 !important;
+    z-index: 20;
+}
+
+.phone-control-row {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 0 !important;
+    z-index: 2 !important;
+}
+
+.phone-country-button {
+    flex: 0 0 72px !important;
+    width: 72px !important;
+    min-width: 72px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #4a4a4a !important;
+    border-right: 0 !important;
+    border-radius: 8px 0 0 8px !important;
+    background: #202020 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 3 !important;
+}
+
+.phone-country-button:hover,
+.phone-country-button:focus-visible {
+    border-color: #d6a52b !important;
+    border-right: 0 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(214,165,43,.14) !important;
+}
+
+/* Closed state: ONLY the calling code is visible. */
+.phone-country-button .phone-flag,
+.phone-country-button .phone-country-name {
+    display: none !important;
+}
+
+.phone-country-code {
+    display: inline-block !important;
+    color: #f1c75b !important;
+    white-space: nowrap !important;
+    font-weight: 900 !important;
+}
+
+.phone-country-arrow {
+    display: inline-block !important;
+    color: #bcbcbc !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+    transition: transform .15s ease;
+}
+
+.phone-input-wrap.country-open .phone-country-arrow {
+    transform: rotate(180deg);
+}
+
+.phone-input-wrap .phone-local-input,
+.phone-input-wrap input.phone-local-input {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #4a4a4a !important;
+    border-left: 0 !important;
+    border-radius: 0 8px 8px 0 !important;
+    background: #202020 !important;
+    color: #ffffff !important;
+    outline: none !important;
+}
+
+.phone-input-wrap .phone-local-input:focus {
+    border-color: #d6a52b !important;
+    border-left: 0 !important;
+    box-shadow: 0 0 0 2px rgba(214,165,43,.14) !important;
+}
+
+.phone-hidden-input,
+.phone-country-input {
+    display: none !important;
+}
+
+.phone-country-dropdown {
+    position: absolute !important;
+    top: calc(100% + 7px) !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 340px !important;
+    max-height: 292px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    border: 1px solid rgba(214,165,43,.65) !important;
+    border-radius: 8px !important;
+    background: #171717 !important;
+    box-shadow: 0 18px 40px rgba(0,0,0,.55) !important;
+    z-index: 100000 !important;
+}
+
+.phone-country-dropdown[hidden] {
+    display: none !important;
+}
+
+.phone-country-search-wrap {
+    padding: 7px !important;
+    border-bottom: 1px solid #303030 !important;
+    background: #171717 !important;
+}
+
+.phone-country-search {
+    width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #444444 !important;
+    border-radius: 7px !important;
+    background: #242424 !important;
+    color: #ffffff !important;
+    outline: none !important;
+    font-size: 12px !important;
+}
+
+.phone-country-search:focus {
+    border-color: #d6a52b !important;
+}
+
+.phone-country-options {
+    max-height: 236px !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+}
+
+.phone-country-option {
+    width: 100% !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 7px 9px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+    border: 0 !important;
+    border-bottom: 1px solid #292929 !important;
+    border-radius: 0 !important;
+    background: #171717 !important;
+    color: #f0f0f0 !important;
+    box-shadow: none !important;
+    text-align: left !important;
+    cursor: pointer !important;
+}
+
+.phone-country-option:hover,
+.phone-country-option:focus-visible,
+.phone-country-option.selected {
+    background: #292929 !important;
+    color: #ffffff !important;
+    outline: none !important;
+}
+
+.phone-country-option .phone-flag {
+    width: 23px !important;
+    min-width: 23px !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    flex: 0 0 23px !important;
+}
+
+.phone-country-option .phone-option-name {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+}
+
+.phone-country-option .phone-option-code {
+    color: #f1c75b !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+}
+
+.phone-country-option .phone-check {
+    width: 15px !important;
+    min-width: 15px !important;
+    text-align: center !important;
+    color: #f1c75b !important;
+    font-weight: 900 !important;
+}
+
+.phone-no-results {
+    padding: 18px 12px !important;
+    color: #aaaaaa !important;
+    text-align: center !important;
+    font-size: 12px !important;
+}
+
+.phone-help-text {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-top: 6px !important;
+    color: #f1c75b !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+}
+
+.phone-validation-message {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-height: 0 !important;
+    margin-top: 3px !important;
+    color: #d9534f !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+}
+
+.phone-input-wrap.phone-invalid .phone-local-input,
+.phone-input-wrap.phone-invalid .phone-country-button {
+    border-color: #c94b4b !important;
+}
+
+/* Light modal version used by Edit Member. */
+.phone-theme-light .phone-country-button {
+    background: #171717 !important;
+    color: #ffffff !important;
+    border-color: #2d2d2d !important;
+}
+
+.phone-theme-light .phone-local-input,
+.phone-theme-light input.phone-local-input {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d9d0bd !important;
+}
+
+.phone-theme-light .phone-local-input:focus {
+    border-color: #c9a227 !important;
+    border-left: 0 !important;
+}
+
+.phone-theme-light .phone-help-text {
+    color: #c79a24 !important;
+}
+
+.phone-theme-light .phone-validation-message {
+    color: #dc2626 !important;
+}
+
+/* Keep the selector and number on one row at all normal phone widths. */
+@media (max-width: 520px) {
+    .phone-input-wrap {
+        flex-direction: column !important;
+    }
+
+    .phone-control-row {
+        flex-direction: row !important;
+    }
+
+    .phone-country-button {
+        flex: 0 0 68px !important;
+        width: 68px !important;
+        min-width: 68px !important;
+    }
+
+    .phone-country-dropdown {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+.phone-input-wrap.country-open-up .phone-country-dropdown {
+    top: auto !important;
+    bottom: calc(100% + 5px) !important;
+}

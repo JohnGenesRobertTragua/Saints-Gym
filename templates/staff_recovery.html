@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saints Gym - Account Recovery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* =========================================================
+           SAINTS GYM ACCOUNT RECOVERY THEME
+           No logo - name and theme only
+           ========================================================= */
+
+        :root {
+            --saints-black: #0b0b0b;
+            --saints-panel: #151515;
+            --saints-panel-2: #1d1d1d;
+            --saints-gold: #d9a928;
+            --saints-gold-light: #f0c84b;
+            --saints-gold-dark: #9d7414;
+            --saints-white: #f5f5f5;
+            --saints-silver: #bdbdbd;
+            --saints-border: #3b3b3b;
+            --saints-red: #ff5c5c;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 50% 15%, rgba(217, 169, 40, 0.08), transparent 34%),
+                linear-gradient(135deg, #070707 0%, #111111 52%, #080808 100%);
+            color: var(--saints-white);
+        }
+
+        .registration-container {
+            width: min(92vw, 430px);
+            margin: 38px auto;
+            padding: 28px 26px 24px;
+            box-sizing: border-box;
+            background: rgba(18, 18, 18, 0.97);
+            border: 1px solid rgba(217, 169, 40, 0.55);
+            border-radius: 14px;
+            box-shadow:
+                0 18px 45px rgba(0, 0, 0, 0.55),
+                0 0 28px rgba(217, 169, 40, 0.07);
+        }
+
+        .gym-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .gym-header h1 {
+            margin: 0 0 7px;
+            color: var(--saints-white);
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 10px rgba(217, 169, 40, 0.12);
+        }
+
+        .gym-header p {
+            margin: 0;
+            color: var(--saints-gold-light);
+            font-size: 13px;
+        }
+
+        .error-message {
+            margin-bottom: 18px;
+            padding: 11px 13px;
+            border: 1px solid #8e2a2a;
+            border-radius: 8px;
+            background: #2b0d0d;
+            color: #ff6b6b;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .recovery-title {
+            margin: 0 0 9px;
+            color: var(--saints-white);
+            font-size: 23px;
+            font-weight: 750;
+            line-height: 1.2;
+            text-align: left;
+        }
+
+        .recovery-note {
+            margin: 0 0 19px;
+            color: var(--saints-silver);
+            line-height: 1.5;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            color: var(--saints-white);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 43px;
+            padding: 11px 12px;
+            border: 1px solid #4b4b4b;
+            border-radius: 7px;
+            outline: none;
+            background: var(--saints-panel-2);
+            color: var(--saints-white);
+            font-size: 13px;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .form-group input::placeholder {
+            color: #888;
+        }
+
+        .form-group input:focus {
+            border-color: var(--saints-gold);
+            box-shadow: 0 0 0 2px rgba(217, 169, 40, 0.13);
+        }
+
+        .show-password {
+            margin: -4px 0 16px;
+        }
+
+        .show-password label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--saints-silver);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .show-password input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--saints-gold);
+            cursor: pointer;
+        }
+
+        form > button[type="submit"] {
+            width: 100%;
+            min-height: 43px;
+            border: 1px solid var(--saints-gold);
+            border-radius: 7px;
+            background: linear-gradient(180deg, var(--saints-gold-light), var(--saints-gold));
+            color: #090909;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.15px;
+            cursor: pointer;
+            transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        form > button[type="submit"]:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 5px 18px rgba(217, 169, 40, 0.18);
+        }
+
+        form > button[type="submit"]:active {
+            transform: translateY(1px);
+        }
+
+        .menu-button {
+            width: 100%;
+            min-height: 43px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border: 1px solid var(--saints-border);
+            border-radius: 7px;
+            background: #202020;
+            color: var(--saints-silver);
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+        }
+
+        .menu-button:hover {
+            border-color: var(--saints-gold-dark);
+            color: var(--saints-gold-light);
+            background: #181818;
+        }
+
+        .cancel-button {
+            background: transparent;
+            border-color: #444;
+        }
+
+        .success-message {
+            margin-bottom: 18px;
+            padding: 13px 14px;
+            border: 1px solid #8d6a19;
+            border-radius: 8px;
+            background: rgba(217, 169, 40, 0.12);
+            color: var(--saints-gold-light);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .registration-container {
+                width: calc(100vw - 28px);
+                margin: 20px auto;
+                padding: 24px 20px 21px;
+            }
+
+            .gym-header h1 {
+                font-size: 25px;
+            }
+
+            .recovery-title {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="registration-container">
+
+    <div class="gym-header">
+        <h1>SAINTS GYM</h1>
+        <p>Account Recovery</p>
+    </div>
+
+    {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    {% if step == "master" %}
+
+        <h2 class="recovery-title">Master Key Verification</h2>
+
+        <p class="recovery-note">
+            Use the Master Key only when the staff username or password has been forgotten.
+        </p>
+
+        <form method="POST" action="/staff-recovery">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <input type="hidden" name="action" value="verify_master">
+
+            <div class="form-group">
+                <label for="master_username">Master Username</label>
+                <input
+                    type="text"
+                    id="master_username"
+                    name="master_username"
+                    placeholder="Enter master username"
+                    autocomplete="username"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="master_password">Master Password</label>
+                <input
+                    type="password"
+                    id="master_password"
+                    name="master_password"
+                    placeholder="Enter master password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <div class="show-password">
+                <label for="showMasterPassword">
+                    <input type="checkbox" id="showMasterPassword">
+                    <span>Show Password</span>
+                </label>
+            </div>
+
+            <button type="submit">VERIFY MASTER KEY</button>
+
+            <a href="/staff-login" class="menu-button cancel-button" style="margin-top: 10px;">
+                CANCEL
+            </a>
+
+        </form>
+
+    {% elif step == "reset" %}
+
+        <h2 class="recovery-title">Reset Staff Account</h2>
+
+        <p class="recovery-note">
+            Master Key verified. Enter the new staff username and password below.
+        </p>
+
+        <form method="POST" action="/staff-recovery">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <input type="hidden" name="action" value="reset_credentials">
+
+            <div class="form-group">
+                <label for="new_username">New Username</label>
+                <input
+                    type="text"
+                    id="new_username"
+                    name="new_username"
+                    placeholder="Enter new username"
+                    autocomplete="username"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input
+                    type="password"
+                    id="new_password"
+                    name="new_password"
+                    placeholder="Enter new password"
+                    autocomplete="new-password"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    placeholder="Confirm new password"
+                    autocomplete="new-password"
+                    required
+                >
+            </div>
+
+            <div class="show-password">
+                <label for="showNewPassword">
+                    <input type="checkbox" id="showNewPassword">
+                    <span>Show Passwords</span>
+                </label>
+            </div>
+
+            <button type="submit">SAVE NEW CREDENTIALS</button>
+
+            <a href="/staff-login" class="menu-button cancel-button" style="margin-top: 10px;">
+                CANCEL
+            </a>
+
+        </form>
+
+    {% elif step == "complete" %}
+
+        <h2 class="recovery-title">Account Recovered</h2>
+
+        <div class="success-message">
+            {{ success }}
+        </div>
+
+        <p class="recovery-note" style="text-align: center;">
+            Your staff login credentials have been changed.<br>
+            Use the new credentials to sign in.
+        </p>
+
+        <a href="/staff-login" class="menu-button" style="border-color: #b88b1d; color: #f0c84b;">
+            GO TO STAFF LOGIN
+        </a>
+
+    {% endif %}
+
+</div>
+
+<script>
+    const masterPassword = document.getElementById("master_password");
+    const showMasterPassword = document.getElementById("showMasterPassword");
+
+    if (showMasterPassword && masterPassword) {
+        showMasterPassword.addEventListener("change", function () {
+            masterPassword.type = this.checked ? "text" : "password";
+        });
+    }
+
+    const newPassword = document.getElementById("new_password");
+    const confirmPassword = document.getElementById("confirm_password");
+    const showNewPassword = document.getElementById("showNewPassword");
+
+    if (showNewPassword && newPassword && confirmPassword) {
+        showNewPassword.addEventListener("change", function () {
+            const type = this.checked ? "text" : "password";
+            newPassword.type = type;
+            confirmPassword.type = type;
+        });
+    }
+</script>
+
+</body>
+</html>

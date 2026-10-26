@@ -1,0 +1,4474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Fitness Gym - Staff Dashboard</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sidebar: #111111;
+            --sidebar-hover: #1d1d1d;
+            --sidebar-active: #ffffff;
+
+            --page-bg: #f4f6f8;
+            --card-bg: #ffffff;
+
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+
+            --success: #16a34a;
+
+            --shadow:
+                0 8px 24px rgba(15, 23, 42, 0.06);
+
+            --radius: 14px;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+
+            font-family:
+                Inter,
+                "Segoe UI",
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: var(--page-bg);
+            color: var(--text);
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+
+        /* =========================================================
+           ADMIN LAYOUT
+           ========================================================= */
+
+        .admin-layout {
+            min-height: 100vh;
+            display: flex;
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+           ========================================================= */
+
+        .admin-sidebar {
+            position: fixed;
+
+            top: 0;
+            left: 0;
+            bottom: 0;
+
+            width: 255px;
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 26px 16px 18px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #101010 0%,
+                    #151515 100%
+                );
+
+            color: #ffffff;
+
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 4px 12px 28px;
+        }
+
+        .sidebar-brand-title {
+            margin: 0;
+
+            font-size: 19px;
+            font-weight: 800;
+
+            letter-spacing: 0.4px;
+        }
+
+        .sidebar-brand-subtitle {
+            margin-top: 5px;
+
+            color: #858585;
+
+            font-size: 11px;
+            font-weight: 600;
+
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+        }
+
+        .sidebar-section-label {
+            padding: 0 12px 9px;
+
+            color: #666666;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sidebar-button {
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            min-height: 46px;
+
+            padding: 0 13px;
+
+            border: 0;
+            border-radius: 10px;
+
+            background: transparent;
+            color: #bdbdbd;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition:
+                background 0.18s ease,
+                color 0.18s ease,
+                transform 0.18s ease;
+        }
+
+        .sidebar-button:hover {
+            background: var(--sidebar-hover);
+            color: #ffffff;
+
+            transform: translateX(2px);
+        }
+
+        .sidebar-button.active {
+            background: var(--sidebar-active);
+            color: #111111;
+
+            box-shadow:
+                0 5px 18px
+                rgba(0, 0, 0, 0.18);
+        }
+
+        .sidebar-icon {
+            width: 24px;
+            height: 24px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 7px;
+
+            background:
+                rgba(255, 255, 255, 0.06);
+
+            font-size: 13px;
+        }
+
+        .sidebar-button.active .sidebar-icon {
+            background: #eeeeee;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+
+            margin: 22px 10px;
+
+            background:
+                rgba(255, 255, 255, 0.08);
+        }
+
+
+        /* =========================================================
+           STAFF PROFILE
+           ========================================================= */
+
+        .sidebar-profile {
+            margin-top: auto;
+
+            padding: 14px 10px 12px;
+
+            border-top:
+                1px solid
+                rgba(255, 255, 255, 0.08);
+        }
+
+        .profile-box {
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 10px;
+
+            border-radius: 10px;
+
+            background:
+                rgba(255, 255, 255, 0.04);
+        }
+
+        .profile-avatar {
+            width: 34px;
+            height: 34px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #ffffff;
+            color: #111111;
+
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .profile-info {
+            min-width: 0;
+        }
+
+        .profile-name {
+            color: #ffffff;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .profile-role {
+            margin-top: 2px;
+
+            color: #777777;
+
+            font-size: 10px;
+        }
+
+        .logout-button {
+            margin-top: 8px;
+        }
+
+
+        /* =========================================================
+           MAIN AREA
+           ========================================================= */
+
+        .admin-main {
+            width: calc(100% - 255px);
+
+            min-height: 100vh;
+
+            margin-left: 255px;
+
+            padding: 34px 38px 45px;
+        }
+
+        .admin-content {
+            width: 100%;
+            max-width: 1450px;
+
+            margin: 0 auto;
+        }
+
+
+        /* =========================================================
+           PAGE HEADER
+           ========================================================= */
+
+        .page-header {
+            display: flex;
+
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin-bottom: 25px;
+        }
+
+        .page-title-group h1 {
+            margin: 0;
+
+            font-size: 30px;
+            font-weight: 800;
+
+            letter-spacing: -0.7px;
+        }
+
+        .page-title-group p {
+            margin: 7px 0 0;
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+        .header-date {
+            padding: 9px 13px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 9px;
+
+            background: #ffffff;
+            color: var(--muted);
+
+            font-size: 11px;
+            font-weight: 600;
+
+            box-shadow: var(--shadow);
+        }
+
+
+        /* =========================================================
+           CONTENT SECTIONS
+           ========================================================= */
+
+        .admin-content-section {
+            display: block;
+        }
+
+        .admin-content-section.hidden {
+            display: none;
+        }
+
+
+        /* =========================================================
+           STATISTICS
+           ========================================================= */
+
+        .dashboard-cards {
+            display: grid;
+
+            grid-template-columns:
+                repeat(5, minmax(0, 1fr));
+
+            gap: 15px;
+
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            position: relative;
+
+            min-height: 126px;
+
+            padding: 19px 20px;
+
+            border:
+                1px solid
+                rgba(229, 231, 235, 0.9);
+
+            border-radius: var(--radius);
+
+            background: var(--card-bg);
+
+            box-shadow: var(--shadow);
+
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: "";
+
+            position: absolute;
+
+            right: -25px;
+            bottom: -25px;
+
+            width: 90px;
+            height: 90px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(37, 99, 235, 0.045);
+        }
+
+        .stat-label {
+            color: #6b7280;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            position: relative;
+
+            margin-top: 13px;
+
+            font-size: 29px;
+            font-weight: 800;
+
+            letter-spacing: -0.5px;
+
+            z-index: 1;
+        }
+
+        .stat-description {
+            margin-top: 4px;
+
+            color: #9ca3af;
+
+            font-size: 10px;
+        }
+
+        .stat-icon {
+            position: absolute;
+
+            top: 17px;
+            right: 17px;
+
+            width: 31px;
+            height: 31px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 9px;
+
+            background: #f3f4f6;
+            color: #374151;
+
+            font-size: 14px;
+        }
+
+
+        /* =========================================================
+           PANELS
+           ========================================================= */
+
+        .content-panel {
+            border:
+                1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            background: var(--card-bg);
+
+            box-shadow: var(--shadow);
+
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 21px 22px 17px;
+        }
+
+        .panel-title {
+            margin: 0;
+
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .panel-subtitle {
+            margin: 5px 0 0;
+
+            color: var(--muted);
+
+            font-size: 12px;
+        }
+
+        .panel-badge {
+            padding: 6px 10px;
+
+            border-radius: 20px;
+
+            background: #f3f4f6;
+            color: #4b5563;
+
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+
+        /* =========================================================
+           TABLE
+           ========================================================= */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+
+            min-width: 800px;
+
+            border-collapse: collapse;
+        }
+
+        .admin-table thead th {
+            padding: 12px 16px;
+
+            background: #111111;
+            color: #ffffff;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            letter-spacing: 0.4px;
+
+            text-align: center;
+
+            white-space: nowrap;
+        }
+
+        .admin-table tbody td {
+            padding: 14px 16px;
+
+            border-bottom:
+                1px solid #eef0f2;
+
+            color: #374151;
+
+            font-size: 11px;
+
+            text-align: center;
+
+            vertical-align: middle;
+        }
+
+        .admin-table tbody tr {
+            transition:
+                background 0.15s ease;
+        }
+
+        .admin-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .admin-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .member-id-badge {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            min-width: 46px;
+
+            padding: 5px 8px;
+
+            border-radius: 7px;
+
+            background: #f3f4f6;
+            color: #111827;
+
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .type-badge {
+            display: inline-flex;
+
+            align-items: center;
+
+            padding: 5px 9px;
+
+            border-radius: 20px;
+
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .type-member {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .type-guest {
+            background: #f5f3ff;
+            color: #6d28d9;
+        }
+
+        .checkout-complete {
+            color: #6b7280;
+        }
+
+        .checkout-pending {
+            color: #d97706;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            padding: 50px 20px;
+
+            text-align: center;
+
+            color: #9ca3af;
+
+            font-size: 12px;
+        }
+
+        .empty-state-icon {
+            width: 46px;
+            height: 46px;
+
+            margin: 0 auto 12px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #f3f4f6;
+
+            font-size: 18px;
+        }
+
+
+        /* =========================================================
+           MEMBER MANAGEMENT
+           ========================================================= */
+
+        .management-toolbar {
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 18px 22px;
+
+            border-bottom:
+                1px solid var(--border);
+
+            background: #fafbfc;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-icon {
+            position: absolute;
+
+            left: 13px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: #9ca3af;
+
+            font-size: 13px;
+
+            pointer-events: none;
+        }
+
+        .member-search {
+            width: 100%;
+            height: 42px;
+
+            padding: 0 14px 0 36px;
+
+            border:
+                1px solid #dfe3e8;
+
+            border-radius: 9px;
+
+            background: #ffffff;
+            color: #111827;
+
+            outline: none;
+
+            font-size: 12px;
+
+            transition:
+                border 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .member-search:focus {
+            border-color: #9ca3af;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(17, 24, 39, 0.06);
+        }
+
+        .member-filter {
+            width: 160px;
+            height: 42px;
+
+            padding: 0 12px;
+
+            border:
+                1px solid #dfe3e8;
+
+            border-radius: 9px;
+
+            background: #ffffff;
+            color: #374151;
+
+            outline: none;
+
+            font-size: 12px;
+
+            cursor: pointer;
+        }
+
+        .member-count {
+            padding: 0 12px;
+
+            color: #6b7280;
+
+            font-size: 11px;
+            font-weight: 600;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================================================
+           ACTION BUTTONS
+           ========================================================= */
+
+        .action-buttons {
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 7px;
+        }
+
+        .action-button {
+            min-width: 65px;
+            height: 32px;
+
+            padding: 0 11px;
+
+            border: 0;
+            border-radius: 7px;
+
+            font-size: 10px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            text-decoration: none;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease;
+        }
+
+        .action-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .edit-button {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .edit-button:hover {
+            background: #dbeafe;
+        }
+
+        .delete-button {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .delete-button:hover {
+            background: #fee2e2;
+        }
+
+
+        /* =========================================================
+           ATTENDANCE HISTORY
+           ========================================================= */
+
+        .history-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            background: #fafbfc;
+        }
+
+        .history-search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .history-search-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 14px 0 36px;
+            border: 1px solid #dfe3e8;
+            border-radius: 9px;
+            background: #ffffff;
+            color: #111827;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .history-search-input:focus,
+        .history-date-input:focus {
+            border-color: #9ca3af;
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+        }
+
+        .history-date-input {
+            width: 160px;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid #dfe3e8;
+            border-radius: 9px;
+            background: #ffffff;
+            color: #374151;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .history-button {
+            height: 42px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .history-search-button {
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .history-search-button:hover {
+            background: #2a2a2a;
+        }
+
+        .history-clear-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            color: #374151;
+            text-decoration: none;
+        }
+
+        .history-clear-button:hover {
+            background: #e5e7eb;
+        }
+
+        .history-count {
+            padding: 0 12px;
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+
+        /* =========================================================
+           SETTINGS
+           ========================================================= */
+
+        .settings-panel {
+            padding: 26px;
+        }
+
+        .settings-card {
+            max-width: 760px;
+            padding: 26px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: #ffffff;
+            box-shadow: var(--shadow);
+        }
+
+        .settings-card-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .settings-card-description {
+            margin: 7px 0 20px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .settings-qr-button {
+            min-height: 42px;
+            padding: 0 18px;
+            border: 0;
+            border-radius: 9px;
+            background: #111111;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .settings-qr-button:hover {
+            background: #2b2b2b;
+        }
+
+
+        .settings-message {
+            max-width: 760px;
+            margin: 0 0 18px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .settings-message.success {
+            background: #ecfdf3;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .settings-message.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+
+        .settings-security-grid {
+            max-width: 760px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .settings-security-card {
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: #ffffff;
+            box-shadow: var(--shadow);
+        }
+
+        .settings-security-card h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .settings-security-card p {
+            margin: 7px 0 18px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .settings-form-group {
+            margin-bottom: 13px;
+        }
+
+        .settings-form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .settings-form-group input {
+            width: 100%;
+            height: 40px;
+            padding: 0 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+            background: #ffffff;
+            color: #111827;
+            font-size: 12px;
+        }
+
+        .settings-form-group input:focus {
+            border-color: #9ca3af;
+            box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.06);
+        }
+
+        .settings-submit-button {
+            width: 100%;
+            min-height: 40px;
+            margin-top: 3px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 8px;
+            background: #111111;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .settings-submit-button:hover {
+            background: #2b2b2b;
+        }
+
+        .settings-security-note {
+            max-width: 760px;
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #f3f4f6;
+            color: #4b5563;
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        @media (max-width: 900px) {
+            .settings-security-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        /* =========================================================
+           QR CODE MODAL
+           ========================================================= */
+
+        .qr-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 5200;
+        }
+
+        .qr-modal.show {
+            display: flex;
+        }
+
+        .qr-modal-box {
+            width: 100%;
+            max-width: 430px;
+            padding: 30px 28px 24px;
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.20);
+            text-align: center;
+            animation: modalAppear 0.2s ease;
+        }
+
+        .qr-modal-title {
+            margin: 0;
+            color: #111827;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .qr-modal-subtitle {
+            margin: 8px 0 20px;
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .qr-image-wrapper {
+            width: 270px;
+            height: 270px;
+            margin: 0 auto 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            background: #ffffff;
+        }
+
+        .qr-image {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .qr-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .qr-modal-button {
+            flex: 1;
+            height: 42px;
+            border: 0;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .qr-print-button {
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .qr-print-button:hover {
+            background: #2b2b2b;
+        }
+
+        .qr-cancel-button {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .qr-cancel-button:hover {
+            background: #e5e7eb;
+        }
+
+
+        @media print {
+
+            body * {
+                visibility: hidden !important;
+            }
+
+            #qrModal,
+            #qrModal * {
+                visibility: visible !important;
+            }
+
+            #qrModal {
+                position: absolute !important;
+                inset: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+            }
+
+            .qr-modal-box {
+                max-width: none !important;
+                width: auto !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .qr-modal-subtitle,
+            .qr-modal-actions {
+                display: none !important;
+            }
+
+            .qr-image-wrapper {
+                width: 360px !important;
+                height: 360px !important;
+                border: 0 !important;
+                margin-bottom: 0 !important;
+            }
+
+        }
+
+
+        /* =========================================================
+           SUCCESS MODAL
+           ========================================================= */
+
+        .success-modal,
+        .edit-modal {
+            position: fixed;
+
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                rgba(0, 0, 0, 0.55);
+
+            z-index: 5000;
+        }
+
+        .edit-modal {
+            z-index: 5100;
+        }
+
+        .success-modal.show,
+        .edit-modal.show {
+            display: flex;
+        }
+
+        .success-modal-box,
+        .edit-modal-box {
+            width: 100%;
+
+            max-width: 390px;
+
+            padding: 32px 28px 26px;
+
+            border-radius: 18px;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 20px 60px
+                rgba(0, 0, 0, 0.20);
+
+            animation:
+                modalAppear 0.2s ease;
+        }
+
+        .edit-modal-box {
+            max-width: 470px;
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+
+                transform:
+                    translateY(10px)
+                    scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+
+                transform:
+                    translateY(0)
+                    scale(1);
+            }
+        }
+
+        .success-modal-box {
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 62px;
+            height: 62px;
+
+            margin: 0 auto 17px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #dcfce7;
+            color: #16a34a;
+
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .success-modal-title {
+            margin: 0;
+
+            color: #111827;
+
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .success-modal-message {
+            margin: 8px 0 22px;
+
+            color: #6b7280;
+
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .success-modal-button {
+            width: 100%;
+            height: 42px;
+
+            border: 0;
+            border-radius: 9px;
+
+            background: #111111;
+            color: #ffffff;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .success-modal-button:hover {
+            background: #2b2b2b;
+        }
+
+
+        /* =========================================================
+           EDIT MEMBER FORM
+           ========================================================= */
+
+        .edit-modal-header {
+            margin-bottom: 20px;
+        }
+
+        .edit-modal-title {
+            margin: 0;
+
+            color: #111827;
+
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .edit-modal-subtitle {
+            margin: 7px 0 0;
+
+            color: #6b7280;
+
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .edit-form-group {
+            margin-bottom: 15px;
+        }
+
+        .edit-form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #374151;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .edit-form-group input {
+            width: 100%;
+            height: 42px;
+
+            padding: 0 12px;
+
+            border:
+                1px solid #dfe3e8;
+
+            border-radius: 9px;
+
+            background: #ffffff;
+            color: #111827;
+
+            outline: none;
+
+            font-size: 12px;
+        }
+
+        .edit-form-group input:focus {
+            border-color: #9ca3af;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(17, 24, 39, 0.06);
+        }
+
+        .edit-form-group input[readonly] {
+            background: #f3f4f6;
+            color: #6b7280;
+
+            cursor: not-allowed;
+        }
+
+        .edit-form-actions {
+            display: flex;
+
+            gap: 9px;
+
+            margin-top: 22px;
+        }
+
+        .edit-form-button {
+            flex: 1;
+
+            height: 42px;
+
+            border: 0;
+            border-radius: 9px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition:
+                background 0.15s ease,
+                transform 0.15s ease;
+        }
+
+        .edit-form-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .edit-cancel-button {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .edit-cancel-button:hover {
+            background: #e5e7eb;
+        }
+
+        .edit-save-button {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .edit-save-button:hover {
+            background: #1d4ed8;
+        }
+
+        .edit-save-button:disabled {
+            opacity: 0.65;
+            cursor: wait;
+
+            transform: none;
+        }
+
+        .edit-error-message {
+            display: none;
+
+            margin-top: 8px;
+
+            color: #dc2626;
+
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .edit-error-message.show {
+            display: block;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+
+        @media (max-width: 1200px) {
+
+            .dashboard-cards {
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 900px) {
+
+            .admin-sidebar {
+                width: 215px;
+            }
+
+            .admin-main {
+                width: calc(100% - 215px);
+
+                margin-left: 215px;
+
+                padding: 28px 24px 40px;
+            }
+
+            .dashboard-cards {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .admin-layout {
+                display: block;
+            }
+
+            .admin-sidebar {
+                position: relative;
+
+                width: 100%;
+                height: auto;
+
+                padding: 16px;
+
+                border-radius: 0;
+            }
+
+            .sidebar-brand {
+                padding: 5px 8px 16px;
+            }
+
+            .sidebar-nav {
+                display: grid;
+
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .sidebar-profile {
+                margin-top: 12px;
+            }
+
+            .admin-main {
+                width: 100%;
+
+                margin-left: 0;
+
+                padding: 22px 15px 35px;
+            }
+
+            .page-header {
+                flex-direction: column;
+            }
+
+            .header-date {
+                align-self: flex-start;
+            }
+
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .management-toolbar {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+            .member-filter {
+                width: 100%;
+            }
+
+            .member-count {
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 430px) {
+
+            .sidebar-nav {
+                grid-template-columns: 1fr;
+            }
+
+            .page-title-group h1 {
+                font-size: 25px;
+            }
+
+            .panel-header {
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+            .edit-form-actions {
+                flex-direction: column;
+            }
+        }
+
+
+        @media (max-width: 760px) {
+
+            .history-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .history-search-wrapper,
+            .history-date-input {
+                width: 100%;
+            }
+
+            .history-count {
+                padding: 4px 0 0;
+                text-align: center;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="admin-layout">
+
+
+    <!-- =========================================================
+         SIDEBAR
+         ========================================================= -->
+
+    <aside class="admin-sidebar">
+
+        <div class="sidebar-brand">
+
+            <div class="sidebar-brand-title">
+                FITNESS GYM
+            </div>
+
+            <div class="sidebar-brand-subtitle">
+                Staff Administration
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-section-label">
+            Navigation
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <button
+                type="button"
+                id="dashboardNav"
+                class="sidebar-button active"
+                onclick="showSection('dashboard')"
+            >
+
+                <span class="sidebar-icon">
+                    ▦
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                id="membersNav"
+                class="sidebar-button"
+                onclick="showSection('members')"
+            >
+
+                <span class="sidebar-icon">
+                    ♙
+                </span>
+
+                <span>
+                    Manage Members
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                id="attendanceNav"
+                class="sidebar-button"
+                onclick="showSection('attendanceHistory')"
+            >
+
+                <span class="sidebar-icon">
+                    ⌕
+                </span>
+
+                <span>
+                    Attendance History
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                id="settingsNav"
+                class="sidebar-button"
+                onclick="showSection('settings')"
+            >
+
+                <span class="sidebar-icon">
+                    ⚙
+                </span>
+
+                <span>
+                    Settings
+                </span>
+
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <div class="sidebar-profile">
+
+            <div class="profile-box">
+
+                <div class="profile-avatar">
+
+                    {% if username %}
+
+                        {{ username[0]|upper }}
+
+                    {% else %}
+
+                        A
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="profile-info">
+
+                    <div class="profile-name">
+                        {{ username or "Staff Admin" }}
+                    </div>
+
+                    <div class="profile-role">
+                        Gym Staff
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <a
+                href="{{ url_for('staff_logout') }}"
+                class="sidebar-button logout-button"
+            >
+
+                <span class="sidebar-icon">
+                    ↪
+                </span>
+
+                <span>
+                    Logout
+                </span>
+
+            </a>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+         ========================================================= -->
+
+    <main class="admin-main">
+
+        <div class="admin-content">
+
+
+            <!-- =================================================
+                 DASHBOARD
+                 ================================================= -->
+
+            <section
+                id="dashboardSection"
+                class="admin-content-section"
+            >
+
+                <div class="page-header">
+
+                    <div class="page-title-group">
+
+                        <h1>
+                            Dashboard
+                        </h1>
+
+                        <p>
+                            Gym attendance overview and today's activity
+                        </p>
+
+                    </div>
+
+                    <div class="header-date">
+                        Today
+                    </div>
+
+                </div>
+
+
+                <!-- STATISTICS -->
+
+                <div class="dashboard-cards">
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            ✓
+                        </div>
+
+                        <div class="stat-label">
+                            Member Check-Ins
+                        </div>
+
+                        <div class="stat-value">
+                            {{ statistics.member_checkins }}
+                        </div>
+
+                        <div class="stat-description">
+                            Today's member visits
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            ♙
+                        </div>
+
+                        <div class="stat-label">
+                            Guest Check-Ins
+                        </div>
+
+                        <div class="stat-value">
+                            {{ statistics.guest_checkins }}
+                        </div>
+
+                        <div class="stat-description">
+                            Today's guest visits
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            #
+                        </div>
+
+                        <div class="stat-label">
+                            Total Check-Ins
+                        </div>
+
+                        <div class="stat-value">
+                            {{ statistics.total_checkins }}
+                        </div>
+
+                        <div class="stat-description">
+                            Combined visits today
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            ♙
+                        </div>
+
+                        <div class="stat-label">
+                            Total Members
+                        </div>
+
+                        <div class="stat-value">
+                            {{ statistics.total_members }}
+                        </div>
+
+                        <div class="stat-description">
+                            Registered active members
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            ●
+                        </div>
+
+                        <div class="stat-label">
+                            Currently Inside
+                        </div>
+
+                        <div class="stat-value">
+                            {{ statistics.currently_inside }}
+                        </div>
+
+                        <div class="stat-description">
+                            Active gym visits
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ATTENDANCE -->
+
+                <div class="content-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <h2 class="panel-title">
+                                Today's Attendance
+                            </h2>
+
+                            <p class="panel-subtitle">
+                                Member and guest check-in activity
+                            </p>
+
+                        </div>
+
+                        <div class="panel-badge">
+                            {{ attendance|length }} Records
+                        </div>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table class="admin-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>ID</th>
+
+                                    <th>Full Name</th>
+
+                                    <th>Phone Number</th>
+
+                                    <th>Type</th>
+
+                                    <th>Check-In</th>
+
+                                    <th>Check-Out</th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% if attendance %}
+
+                                    {% for record in attendance %}
+
+                                        <tr>
+
+                                            <td>
+
+                                                <span class="member-id-badge">
+                                                    {{ record["customer_id"] }}
+                                                </span>
+
+                                            </td>
+
+                                            <td>
+
+                                                <strong>
+                                                    {{ record["full_name"] }}
+                                                </strong>
+
+                                            </td>
+
+                                            <td>
+                                                {{ record["phone"] }}
+                                            </td>
+
+                                            <td>
+
+                                                {% if record["visit_type"] == "Member" %}
+
+                                                    <span class="type-badge type-member">
+                                                        Member
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="type-badge type-guest">
+                                                        Guest
+                                                    </span>
+
+                                                {% endif %}
+
+                                            </td>
+
+                                            <td>
+                                                {{ record["check_in_time"] }}
+                                            </td>
+
+                                            <td>
+
+                                                {% if record["check_out_time"] %}
+
+                                                    <span class="checkout-complete">
+                                                        {{ record["check_out_time"] }}
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="checkout-pending">
+                                                        —
+                                                    </span>
+
+                                                {% endif %}
+
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                {% else %}
+
+                                    <tr>
+
+                                        <td colspan="6">
+
+                                            <div class="empty-state">
+
+                                                <div class="empty-state-icon">
+                                                    ◷
+                                                </div>
+
+                                                No attendance records for today.
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endif %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 MANAGE MEMBERS
+                 ================================================= -->
+
+            <section
+                id="membersSection"
+                class="admin-content-section hidden"
+            >
+
+                <div class="page-header">
+
+                    <div class="page-title-group">
+
+                        <h1>
+                            Manage Members
+                        </h1>
+
+                        <p>
+                            Search, edit, and manage registered members
+                        </p>
+
+                    </div>
+
+                    <div class="header-date">
+                        {{ members|length }} Members
+                    </div>
+
+                </div>
+
+
+                <div class="content-panel">
+
+
+                    <!-- SEARCH TOOLBAR -->
+
+                    <div class="management-toolbar">
+
+                        <div class="search-wrapper">
+
+                            <span class="search-icon">
+                                ⌕
+                            </span>
+
+                            <input
+                                type="text"
+                                id="memberSearch"
+                                class="member-search"
+                                placeholder="Search by customer ID, name, or phone number..."
+                                oninput="filterMembers()"
+                            >
+
+                        </div>
+
+
+                        <select
+                            id="memberFilter"
+                            class="member-filter"
+                            onchange="filterMembers()"
+                        >
+
+                            <option value="all">
+                                Search All
+                            </option>
+
+                            <option value="id">
+                                Customer ID
+                            </option>
+
+                            <option value="name">
+                                Full Name
+                            </option>
+
+                            <option value="phone">
+                                Phone Number
+                            </option>
+
+                        </select>
+
+
+                        <div
+                            id="memberCount"
+                            class="member-count"
+                        >
+                            {{ members|length }} members
+                        </div>
+
+                    </div>
+
+
+                    <!-- MEMBERS TABLE -->
+
+                    <div class="table-wrapper">
+
+                        <table
+                            class="admin-table"
+                            id="membersTable"
+                        >
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Customer ID
+                                    </th>
+
+                                    <th>
+                                        Full Name
+                                    </th>
+
+                                    <th>
+                                        Phone Number
+                                    </th>
+
+                                    <th>
+                                        Registered
+                                    </th>
+
+                                    <th>
+                                        Actions
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody id="membersTableBody">
+
+                                {% if members %}
+
+                                    {% for member in members %}
+
+                                        <tr
+                                            class="member-row"
+                                            data-id="{{ '%04d'|format(member['id']) }}"
+                                            data-name="{{ member['surname'] }} {{ member['first_name'] }}"
+                                            data-phone="{{ member['phone'] }}"
+                                        >
+
+                                            <td>
+
+                                                <span class="member-id-badge">
+                                                    {{ '%04d'|format(member['id']) }}
+                                                </span>
+
+                                            </td>
+
+
+                                            <td>
+
+                                                <strong>
+                                                    {{ member["surname"] }},
+                                                    {{ member["first_name"] }}
+                                                </strong>
+
+                                            </td>
+
+
+                                            <td>
+                                                {{ member["phone"] }}
+                                            </td>
+
+
+                                            <td>
+                                                {{ member["created_at"] }}
+                                            </td>
+
+
+                                            <td>
+
+                                                <div class="action-buttons">
+
+
+                                                    <!-- EDIT -->
+
+                                                    <button
+                                                        type="button"
+                                                        class="action-button edit-button"
+                                                        onclick="openEditModal(this)"
+                                                        data-member-id="{{ member['id'] }}"
+                                                        data-surname="{{ member['surname']|e }}"
+                                                        data-first-name="{{ member['first_name']|e }}"
+                                                        data-phone="{{ member['phone'] }}"
+                                                    >
+                                                        Edit
+                                                    </button>
+
+
+                                                    <!-- REMOVE -->
+
+                                                    <form
+                                                        method="POST"
+                                                        action="/admin/members/delete/{{ member['id'] }}"
+                                                        onsubmit="return removeMember(event, this, '{{ member['surname']|e }}, {{ member['first_name']|e }}');"
+                                                        style="margin: 0;"
+                                                    >
+
+                                                        <button
+                                                            type="submit"
+                                                            class="action-button delete-button"
+                                                        >
+                                                            Remove
+                                                        </button>
+
+                                                    </form>
+
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                {% else %}
+
+                                    <tr>
+
+                                        <td colspan="5">
+
+                                            <div class="empty-state">
+
+                                                <div class="empty-state-icon">
+                                                    ♙
+                                                </div>
+
+                                                No registered members found.
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endif %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 ATTENDANCE HISTORY
+                 ================================================= -->
+
+            <section
+                id="attendanceHistorySection"
+                class="admin-content-section hidden"
+            >
+
+                <div class="page-header">
+
+                    <div class="page-title-group">
+
+                        <h1>
+                            Attendance History
+                        </h1>
+
+                        <p>
+                            Search and review member and guest attendance records
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="content-panel">
+
+                    <form
+                        method="GET"
+                        action="{{ url_for('admin_dashboard') }}"
+                        class="history-toolbar"
+                    >
+
+                        <div class="history-search-wrapper">
+
+                            <span class="search-icon">
+                                ⌕
+                            </span>
+
+                            <input
+                                type="text"
+                                name="history_search"
+                                class="history-search-input"
+                                value="{{ history_search or '' }}"
+                                placeholder="Search ID, name, phone, type, or time..."
+                            >
+
+                        </div>
+
+                        <input
+                            type="date"
+                            name="history_date"
+                            class="history-date-input"
+                            value="{{ history_date or '' }}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="history-button history-search-button"
+                        >
+                            Search
+                        </button>
+
+                        <a
+                            href="{{ url_for('admin_dashboard') }}"
+                            class="history-button history-clear-button"
+                        >
+                            Clear
+                        </a>
+
+                        <div class="history-count">
+                            {{ attendance_history|length }}
+                            {{ 'record' if attendance_history|length == 1 else 'records' }}
+                        </div>
+
+                    </form>
+
+
+                    <div class="table-wrapper">
+
+                        <table class="admin-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        ID
+                                    </th>
+
+                                    <th>
+                                        Full Name
+                                    </th>
+
+                                    <th>
+                                        Phone Number
+                                    </th>
+
+                                    <th>
+                                        Type
+                                    </th>
+
+                                    <th>
+                                        Check-In
+                                    </th>
+
+                                    <th>
+                                        Check-Out
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% if attendance_history %}
+
+                                    {% for record in attendance_history %}
+
+                                        <tr>
+
+                                            <td>
+
+                                                {% if record['customer_id'] != '-' %}
+
+                                                    <span class="member-id-badge">
+                                                        {{ record['customer_id'] }}
+                                                    </span>
+
+                                                {% else %}
+
+                                                    —
+
+                                                {% endif %}
+
+                                            </td>
+
+                                            <td>
+                                                <strong>
+                                                    {{ record['full_name'] }}
+                                                </strong>
+                                            </td>
+
+                                            <td>
+                                                {{ record['phone'] or '—' }}
+                                            </td>
+
+                                            <td>
+
+                                                {% if record['visit_type'] == 'Member' %}
+
+                                                    <span class="type-badge type-member">
+                                                        Member
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="type-badge type-guest">
+                                                        Guest
+                                                    </span>
+
+                                                {% endif %}
+
+                                            </td>
+
+                                            <td>
+                                                {{ record['check_in_time'] }}
+                                            </td>
+
+                                            <td>
+
+                                                {% if record['check_out_time'] %}
+
+                                                    <span class="checkout-complete">
+                                                        {{ record['check_out_time'] }}
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="checkout-pending">
+                                                        —
+                                                    </span>
+
+                                                {% endif %}
+
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                {% else %}
+
+                                    <tr>
+
+                                        <td colspan="6">
+
+                                            <div class="empty-state">
+
+                                                <div class="empty-state-icon">
+                                                    ⌕
+                                                </div>
+
+                                                No attendance records found.
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endif %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SETTINGS
+                 ================================================= -->
+
+            <section
+                id="settingsSection"
+                class="admin-content-section hidden"
+            >
+
+                <div class="page-header">
+
+                    <div class="page-title-group">
+
+                        <h1>
+                            Settings
+                        </h1>
+
+                        <p>
+                            Manage the customer check-in QR code
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {% if settings_message %}
+
+                <div
+                    class="settings-message {{ 'success' if settings_status == 'success' else 'error' }}"
+                >
+                    {{ settings_message }}
+                </div>
+
+                {% endif %}
+
+
+                <div class="settings-panel">
+
+                    <div class="settings-card">
+
+                        <h2 class="settings-card-title">
+                            Customer Check-In QR Code
+                        </h2>
+
+                        <p class="settings-card-description">
+                            Display the QR code that customers can scan to open the gym
+                            check-in menu. You can print the QR code and place it at the
+                            gym entrance.
+                        </p>
+
+                        <button
+                            type="button"
+                            class="settings-qr-button"
+                            onclick="openQrModal()"
+                        >
+                            Display QR Code
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="settings-security-grid">
+
+                    <!-- CHANGE USERNAME -->
+                    <div class="settings-security-card">
+
+                        <h3>
+                            Change Username
+                        </h3>
+
+                        <p>
+                            Enter your current password or the Master Key password
+                            to authorize the username change.
+                        </p>
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('change_staff_username') }}"
+                        >
+
+                            <div class="settings-form-group">
+
+                                <label for="usernameAuthorizationPassword">
+                                    Current Password or Master Key Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    id="usernameAuthorizationPassword"
+                                    name="authorization_password"
+                                    placeholder="Enter authorization password"
+                                    autocomplete="current-password"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="settings-form-group">
+
+                                <label for="newStaffUsername">
+                                    New Username
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="newStaffUsername"
+                                    name="new_username"
+                                    placeholder="Enter new username"
+                                    autocomplete="username"
+                                    required
+                                >
+
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="settings-submit-button"
+                            >
+                                Change Username
+                            </button>
+
+                        </form>
+
+                    </div>
+
+
+                    <!-- CHANGE PASSWORD -->
+                    <div class="settings-security-card">
+
+                        <h3>
+                            Change Password
+                        </h3>
+
+                        <p>
+                            Enter your current password or the Master Key password
+                            to authorize the password change.
+                        </p>
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('change_staff_password') }}"
+                        >
+
+                            <div class="settings-form-group">
+
+                                <label for="passwordAuthorizationPassword">
+                                    Current Password or Master Key Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    id="passwordAuthorizationPassword"
+                                    name="authorization_password"
+                                    placeholder="Enter authorization password"
+                                    autocomplete="current-password"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="settings-form-group">
+
+                                <label for="newStaffPassword">
+                                    New Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    id="newStaffPassword"
+                                    name="new_password"
+                                    placeholder="Enter new password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="settings-form-group">
+
+                                <label for="confirmStaffPassword">
+                                    Confirm New Password
+                                </label>
+
+                                <input
+                                    type="password"
+                                    id="confirmStaffPassword"
+                                    name="confirm_password"
+                                    placeholder="Confirm new password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="settings-submit-button"
+                            >
+                                Change Password
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+
+                <div class="settings-security-note">
+                    <strong>Security note:</strong>
+                    You can authorize a username or password change with your
+                    current staff password or the Master Key password. The Master
+                    Key itself cannot be changed from this page.
+                </div>
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================================================
+     QR CODE MODAL
+     ========================================================= -->
+
+<div
+    id="qrModal"
+    class="qr-modal"
+>
+
+    <div class="qr-modal-box">
+
+        <h2 class="qr-modal-title">
+            Gym Check-In QR Code
+        </h2>
+
+        <p class="qr-modal-subtitle">
+            Customers can scan this QR code to open the gym check-in menu.
+        </p>
+
+        <div class="qr-image-wrapper">
+
+            <img
+                id="qrCodeImage"
+                class="qr-image"
+                src=""
+                alt="Gym customer check-in QR code"
+            >
+
+        </div>
+
+        <div class="qr-modal-actions">
+
+            <button
+                type="button"
+                class="qr-modal-button qr-print-button"
+                onclick="printQrCode()"
+            >
+                Print
+            </button>
+
+            <button
+                type="button"
+                class="qr-modal-button qr-cancel-button"
+                onclick="closeQrModal()"
+            >
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     EDIT MEMBER MODAL
+     ========================================================= -->
+
+<div
+    id="editMemberModal"
+    class="edit-modal"
+>
+
+    <div class="edit-modal-box">
+
+        <div class="edit-modal-header">
+
+            <h2 class="edit-modal-title">
+                Edit Member
+            </h2>
+
+            <p class="edit-modal-subtitle">
+                Update the member information below.
+                Customer ID cannot be changed.
+            </p>
+
+        </div>
+
+
+        <form
+            id="editMemberForm"
+            method="POST"
+        >
+
+            <div class="edit-form-group">
+
+                <label for="editCustomerId">
+                    Customer ID
+                </label>
+
+                <input
+                    type="text"
+                    id="editCustomerId"
+                    readonly
+                >
+
+            </div>
+
+
+            <div class="edit-form-group">
+
+                <label for="editSurname">
+                    Surname
+                </label>
+
+                <input
+                    type="text"
+                    id="editSurname"
+                    name="surname"
+                    autocomplete="family-name"
+                    required
+                >
+
+            </div>
+
+
+            <div class="edit-form-group">
+
+                <label for="editFirstName">
+                    First Name
+                </label>
+
+                <input
+                    type="text"
+                    id="editFirstName"
+                    name="first_name"
+                    autocomplete="given-name"
+                    required
+                >
+
+            </div>
+
+
+            <div class="edit-form-group">
+
+                <label for="editPhone">
+                    Phone Number
+                </label>
+
+                <input
+                    type="text"
+                    id="editPhone"
+                    name="phone"
+                    inputmode="numeric"
+                    maxlength="11"
+                    autocomplete="tel"
+                    required
+                >
+
+                <div
+                    id="editErrorMessage"
+                    class="edit-error-message"
+                ></div>
+
+            </div>
+
+
+            <div class="edit-form-actions">
+
+                <button
+                    type="button"
+                    class="edit-form-button edit-cancel-button"
+                    onclick="closeEditModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="edit-form-button edit-save-button"
+                    id="editSaveButton"
+                >
+                    Update Member
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     SUCCESS MODAL
+     ========================================================= -->
+
+<div
+    id="successModal"
+    class="success-modal"
+>
+
+    <div class="success-modal-box">
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <h2
+            id="successModalTitle"
+            class="success-modal-title"
+        >
+            Member Updated Successfully
+        </h2>
+
+        <p
+            id="successModalMessage"
+            class="success-modal-message"
+        >
+            The member has been updated successfully.
+        </p>
+
+        <button
+            type="button"
+            class="success-modal-button"
+            onclick="closeSuccessModal()"
+        >
+            OK
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    /* =========================================================
+       SECTION SWITCHING
+       ========================================================= */
+
+    function showSection(section) {
+
+        // Remember which staff section is currently open so that
+        // the automatic refresh does not send the staff user back
+        // to the Dashboard.
+        try {
+            sessionStorage.setItem(
+                "adminActiveSection",
+                section
+            );
+        }
+        catch (error) {
+            // Ignore storage errors and continue normally.
+        }
+
+        const dashboardSection =
+            document.getElementById(
+                "dashboardSection"
+            );
+
+        const membersSection =
+            document.getElementById(
+                "membersSection"
+            );
+
+        const attendanceHistorySection =
+            document.getElementById(
+                "attendanceHistorySection"
+            );
+
+        const dashboardNav =
+            document.getElementById(
+                "dashboardNav"
+            );
+
+        const membersNav =
+            document.getElementById(
+                "membersNav"
+            );
+
+        const attendanceNav =
+            document.getElementById(
+                "attendanceNav"
+            );
+
+        const settingsSection =
+            document.getElementById(
+                "settingsSection"
+            );
+
+        const settingsNav =
+            document.getElementById(
+                "settingsNav"
+            );
+
+
+        dashboardSection.classList.add(
+            "hidden"
+        );
+
+        membersSection.classList.add(
+            "hidden"
+        );
+
+        attendanceHistorySection.classList.add(
+            "hidden"
+        );
+
+        settingsSection.classList.add(
+            "hidden"
+        );
+
+
+        dashboardNav.classList.remove(
+            "active"
+        );
+
+        membersNav.classList.remove(
+            "active"
+        );
+
+        attendanceNav.classList.remove(
+            "active"
+        );
+
+        settingsNav.classList.remove(
+            "active"
+        );
+
+
+        if (section === "dashboard") {
+
+            dashboardSection.classList.remove(
+                "hidden"
+            );
+
+            dashboardNav.classList.add(
+                "active"
+            );
+
+        }
+
+
+        else if (section === "members") {
+
+            membersSection.classList.remove(
+                "hidden"
+            );
+
+            membersNav.classList.add(
+                "active"
+            );
+
+            filterMembers();
+
+        }
+
+
+        else if (
+            section === "attendanceHistory"
+        ) {
+
+            attendanceHistorySection.classList.remove(
+                "hidden"
+            );
+
+            attendanceNav.classList.add(
+                "active"
+            );
+
+        }
+
+
+        else if (section === "settings") {
+
+            settingsSection.classList.remove(
+                "hidden"
+            );
+
+            settingsNav.classList.add(
+                "active"
+            );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       MEMBER SEARCH
+       ========================================================= */
+
+    function filterMembers() {
+
+        const searchInput =
+            document.getElementById(
+                "memberSearch"
+            );
+
+        const filter =
+            document.getElementById(
+                "memberFilter"
+            );
+
+        const rows =
+            document.querySelectorAll(
+                ".member-row"
+            );
+
+        const count =
+            document.getElementById(
+                "memberCount"
+            );
+
+
+        if (!searchInput || !filter) {
+            return;
+        }
+
+
+        const searchText =
+            searchInput.value
+                .toLowerCase()
+                .trim();
+
+
+        const selectedFilter =
+            filter.value;
+
+
+        let visibleCount = 0;
+
+
+        rows.forEach(
+            function(row) {
+
+                const id =
+                    (
+                        row.dataset.id || ""
+                    ).toLowerCase();
+
+                const name =
+                    (
+                        row.dataset.name || ""
+                    ).toLowerCase();
+
+                const phone =
+                    (
+                        row.dataset.phone || ""
+                    ).toLowerCase();
+
+
+                let searchableText = "";
+
+
+                if (
+                    selectedFilter === "id"
+                ) {
+
+                    searchableText = id;
+
+                }
+
+                else if (
+                    selectedFilter === "name"
+                ) {
+
+                    searchableText = name;
+
+                }
+
+                else if (
+                    selectedFilter === "phone"
+                ) {
+
+                    searchableText = phone;
+
+                }
+
+                else {
+
+                    searchableText =
+                        id + " " +
+                        name + " " +
+                        phone;
+
+                }
+
+
+                if (
+                    searchableText.includes(
+                        searchText
+                    )
+                ) {
+
+                    row.style.display = "";
+
+                    visibleCount++;
+
+                }
+
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+            }
+        );
+
+
+        if (count) {
+
+            count.textContent =
+                visibleCount +
+                (
+                    visibleCount === 1
+                        ? " member"
+                        : " members"
+                );
+
+        }
+
+    }
+
+
+    /* =========================================================
+       EDIT MEMBER
+       ========================================================= */
+
+    function openEditModal(button) {
+
+        const modal =
+            document.getElementById(
+                "editMemberModal"
+            );
+
+        const form =
+            document.getElementById(
+                "editMemberForm"
+            );
+
+        const customerIdInput =
+            document.getElementById(
+                "editCustomerId"
+            );
+
+        const surnameInput =
+            document.getElementById(
+                "editSurname"
+            );
+
+        const firstNameInput =
+            document.getElementById(
+                "editFirstName"
+            );
+
+        const phoneInput =
+            document.getElementById(
+                "editPhone"
+            );
+
+        const errorMessage =
+            document.getElementById(
+                "editErrorMessage"
+            );
+
+
+        if (
+            !modal ||
+            !form ||
+            !customerIdInput ||
+            !surnameInput ||
+            !firstNameInput ||
+            !phoneInput
+        ) {
+
+            return;
+
+        }
+
+
+        const memberId =
+            button.dataset.memberId || "";
+
+        const surname =
+            button.dataset.surname || "";
+
+        const firstName =
+            button.dataset.firstName || "";
+
+        const phone =
+            button.dataset.phone || "";
+
+
+        customerIdInput.value =
+            String(memberId).padStart(
+                4,
+                "0"
+            );
+
+        surnameInput.value =
+            surname;
+
+        firstNameInput.value =
+            firstName;
+
+        phoneInput.value =
+            phone;
+
+
+        form.action =
+            "/admin/members/edit/" +
+            memberId;
+
+        form.dataset.memberId =
+            memberId;
+
+
+        if (errorMessage) {
+
+            errorMessage.textContent = "";
+
+            errorMessage.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        modal.classList.add(
+            "show"
+        );
+
+
+        setTimeout(
+            function() {
+
+                surnameInput.focus();
+                surnameInput.select();
+
+            },
+            50
+        );
+
+    }
+
+
+    function closeEditModal(skipPendingRefresh = false) {
+
+        const modal =
+            document.getElementById(
+                "editMemberModal"
+            );
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.remove(
+            "show"
+        );
+
+        if (
+            !skipPendingRefresh &&
+            window.processPendingDashboardRefresh
+        ) {
+            window.processPendingDashboardRefresh();
+        }
+
+    }
+
+
+    /* =========================================================
+       UPDATE MEMBER
+       ========================================================= */
+
+    async function submitMemberUpdate(event) {
+
+        event.preventDefault();
+
+
+        const form =
+            event.currentTarget;
+
+
+        const surnameInput =
+            document.getElementById(
+                "editSurname"
+            );
+
+        const firstNameInput =
+            document.getElementById(
+                "editFirstName"
+            );
+
+        const phoneInput =
+            document.getElementById(
+                "editPhone"
+            );
+
+        const saveButton =
+            document.getElementById(
+                "editSaveButton"
+            );
+
+        const errorMessage =
+            document.getElementById(
+                "editErrorMessage"
+            );
+
+
+        const surname =
+            surnameInput.value.trim();
+
+        const firstName =
+            firstNameInput.value.trim();
+
+        const phone =
+            phoneInput.value.trim();
+
+
+        if (!surname) {
+
+            showEditError(
+                "Please enter the surname."
+            );
+
+            surnameInput.focus();
+
+            return;
+
+        }
+
+
+        if (!firstName) {
+
+            showEditError(
+                "Please enter the first name."
+            );
+
+            firstNameInput.focus();
+
+            return;
+
+        }
+
+
+        if (!/^\d{11}$/.test(phone)) {
+
+            showEditError(
+                "Phone number must contain exactly 11 digits."
+            );
+
+            phoneInput.focus();
+
+            return;
+
+        }
+
+
+        const confirmed =
+            window.confirm(
+                "Do you want to update this member?"
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        if (saveButton) {
+
+            saveButton.disabled = true;
+
+            saveButton.textContent =
+                "Updating...";
+
+        }
+
+
+        if (errorMessage) {
+
+            errorMessage.textContent = "";
+
+            errorMessage.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        window.adminMutationInProgress = true;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    form.action,
+                    {
+                        method: "POST",
+
+                        credentials:
+                            "same-origin",
+
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest",
+
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+                        },
+
+                        body:
+                            new URLSearchParams(
+                                new FormData(form)
+                            )
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Update failed."
+                );
+
+            }
+
+
+            const memberId =
+                form.dataset.memberId;
+
+
+            const rows =
+                document.querySelectorAll(
+                    ".member-row"
+                );
+
+
+            let updatedRow = null;
+
+
+            rows.forEach(
+                function(row) {
+
+                    if (
+                        row.dataset.id ===
+                        String(memberId).padStart(
+                            4,
+                            "0"
+                        )
+                    ) {
+
+                        updatedRow = row;
+
+                    }
+
+                }
+            );
+
+
+            if (updatedRow) {
+
+                const nameCell =
+                    updatedRow.querySelector(
+                        "td:nth-child(2)"
+                    );
+
+                const phoneCell =
+                    updatedRow.querySelector(
+                        "td:nth-child(3)"
+                    );
+
+
+                if (nameCell) {
+
+                    nameCell.innerHTML =
+                        "<strong>" +
+                        escapeHtml(surname) +
+                        ", " +
+                        escapeHtml(firstName) +
+                        "</strong>";
+
+                }
+
+
+                if (phoneCell) {
+
+                    phoneCell.textContent =
+                        phone;
+
+                }
+
+
+                updatedRow.dataset.name =
+                    surname +
+                    " " +
+                    firstName;
+
+                updatedRow.dataset.phone =
+                    phone;
+
+
+                const editButton =
+                    updatedRow.querySelector(
+                        ".edit-button"
+                    );
+
+
+                if (editButton) {
+
+                    editButton.dataset.surname =
+                        surname;
+
+                    editButton.dataset.firstName =
+                        firstName;
+
+                    editButton.dataset.phone =
+                        phone;
+
+                }
+
+            }
+
+
+            closeEditModal();
+
+            filterMembers();
+
+
+            showSuccessModal(
+                "update",
+                surname +
+                ", " +
+                firstName
+            );
+
+        }
+
+        catch (error) {
+
+            window.adminMutationInProgress = false;
+
+            showEditError(
+                "Unable to update the member. Please try again."
+            );
+
+        }
+
+        finally {
+
+            window.adminMutationInProgress = false;
+
+            if (saveButton) {
+
+                saveButton.disabled = false;
+
+                saveButton.textContent =
+                    "Update Member";
+
+            }
+
+        }
+
+    }
+
+
+    function showEditError(message) {
+
+        const errorMessage =
+            document.getElementById(
+                "editErrorMessage"
+            );
+
+
+        if (!errorMessage) {
+            return;
+        }
+
+
+        errorMessage.textContent =
+            message;
+
+        errorMessage.classList.add(
+            "show"
+        );
+
+    }
+
+
+    /* =========================================================
+       ESCAPE HTML
+       ========================================================= */
+
+    function escapeHtml(value) {
+
+        return String(value)
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+
+    }
+
+
+    /* =========================================================
+       REMOVE MEMBER
+       ========================================================= */
+
+    async function removeMember(
+        event,
+        form,
+        memberName
+    ) {
+
+        event.preventDefault();
+
+
+        const confirmed =
+            window.confirm(
+                "Do you want to remove " +
+                memberName +
+                "?\n\n" +
+                "The member will no longer appear " +
+                "in the active member list, but " +
+                "their attendance history will be preserved."
+            );
+
+
+        if (!confirmed) {
+
+            return false;
+
+        }
+
+
+        window.adminMutationInProgress = true;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    form.action,
+                    {
+                        method: "POST",
+
+                        credentials:
+                            "same-origin",
+
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest"
+                        }
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Remove failed."
+                );
+
+            }
+
+
+            const row =
+                form.closest(
+                    ".member-row"
+                );
+
+
+            if (row) {
+
+                row.remove();
+
+            }
+
+
+            filterMembers();
+
+
+            window.adminMutationInProgress = false;
+
+
+            showSuccessModal(
+                "remove",
+                memberName
+            );
+
+        }
+
+        catch (error) {
+
+            window.adminMutationInProgress = false;
+
+            window.alert(
+                "Unable to remove the member. Please try again."
+            );
+
+        }
+
+
+        return false;
+
+    }
+
+
+    /* =========================================================
+       SUCCESS MODAL
+       ========================================================= */
+
+    function showSuccessModal(
+        actionType,
+        memberName
+    ) {
+
+        const modal =
+            document.getElementById(
+                "successModal"
+            );
+
+        const title =
+            document.getElementById(
+                "successModalTitle"
+            );
+
+        const message =
+            document.getElementById(
+                "successModalMessage"
+            );
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        if (actionType === "update") {
+
+            title.textContent =
+                "Member Updated Successfully";
+
+            message.textContent =
+                memberName +
+                " has been updated successfully.";
+
+        }
+
+        else {
+
+            title.textContent =
+                "Member Removed Successfully";
+
+            message.textContent =
+                memberName +
+                " has been removed successfully. " +
+                "Their attendance history has been preserved.";
+
+        }
+
+
+        modal.classList.add(
+            "show"
+        );
+
+    }
+
+
+    function closeSuccessModal() {
+
+        const modal =
+            document.getElementById(
+                "successModal"
+            );
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.remove(
+            "show"
+        );
+
+        if (window.processPendingDashboardRefresh) {
+            window.processPendingDashboardRefresh();
+        }
+
+    }
+
+
+    /* =========================================================
+       MODAL CLICK OUTSIDE
+       ========================================================= */
+
+    document.addEventListener(
+        "click",
+        function(event) {
+
+            const successModal =
+                document.getElementById(
+                    "successModal"
+                );
+
+            const editModal =
+                document.getElementById(
+                    "editMemberModal"
+                );
+
+
+            if (
+                successModal &&
+                event.target === successModal
+            ) {
+
+                closeSuccessModal();
+
+            }
+
+
+            if (
+                editModal &&
+                event.target === editModal
+            ) {
+
+                closeEditModal();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       ESC KEY
+       ========================================================= */
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key !== "Escape") {
+                return;
+            }
+
+
+            const editModal =
+                document.getElementById(
+                    "editMemberModal"
+                );
+
+            const successModal =
+                document.getElementById(
+                    "successModal"
+                );
+
+
+            if (
+                editModal &&
+                editModal.classList.contains(
+                    "show"
+                )
+            ) {
+
+                closeEditModal();
+
+                return;
+
+            }
+
+
+            if (
+                successModal &&
+                successModal.classList.contains(
+                    "show"
+                )
+            ) {
+
+                closeSuccessModal();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       PHONE INPUT
+       ========================================================= */
+
+    const editPhone =
+        document.getElementById(
+            "editPhone"
+        );
+
+
+    if (editPhone) {
+
+        editPhone.addEventListener(
+            "input",
+            function() {
+
+                this.value =
+                    this.value
+                        .replace(
+                            /\D/g,
+                            ""
+                        )
+                        .slice(
+                            0,
+                            11
+                        );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       FORM SUBMIT
+       ========================================================= */
+
+    const editForm =
+        document.getElementById(
+            "editMemberForm"
+        );
+
+
+    if (editForm) {
+
+        editForm.addEventListener(
+            "submit",
+            submitMemberUpdate
+        );
+
+    }
+
+
+    /* =========================================================
+       INITIALIZATION
+       ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            filterMembers();
+
+            // Restore the section that was open before the automatic
+            // page refresh. The Dashboard remains the default.
+            let activeSection = "dashboard";
+
+            try {
+                activeSection =
+                    sessionStorage.getItem(
+                        "adminActiveSection"
+                    ) || "dashboard";
+            }
+            catch (error) {
+                activeSection = "dashboard";
+            }
+
+            {% if settings_message %}
+                activeSection = "settings";
+            {% endif %}
+
+            if (
+                activeSection === "members" ||
+                activeSection === "attendanceHistory" ||
+                activeSection === "settings"
+            ) {
+                showSection(activeSection);
+            }
+            else {
+                showSection("dashboard");
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       QR CODE SETTINGS
+       ========================================================= */
+
+    function openQrModal() {
+
+        const modal =
+            document.getElementById(
+                "qrModal"
+            );
+
+        const image =
+            document.getElementById(
+                "qrCodeImage"
+            );
+
+        if (!modal || !image) {
+            return;
+        }
+
+        image.src =
+            "{{ url_for('admin_qr_code') }}?t=" +
+            Date.now();
+
+        modal.classList.add(
+            "show"
+        );
+
+    }
+
+
+    function closeQrModal() {
+
+        const modal =
+            document.getElementById(
+                "qrModal"
+            );
+
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove(
+            "show"
+        );
+
+    }
+
+
+    function printQrCode() {
+
+        window.print();
+
+    }
+
+
+    /* =========================================================
+       LIVE DATA UPDATE
+       ========================================================= */
+
+    window.adminMutationInProgress = false;
+
+
+    (function() {
+
+        let pendingDashboardRefresh = false;
+
+
+        function dashboardIsBusy() {
+
+            const editModal =
+                document.getElementById(
+                    "editMemberModal"
+                );
+
+            const successModal =
+                document.getElementById(
+                    "successModal"
+                );
+
+            const activeElement =
+                document.activeElement;
+
+            const isEditing =
+                editModal &&
+                editModal.classList.contains(
+                    "show"
+                );
+
+            const isShowingSuccess =
+                successModal &&
+                successModal.classList.contains(
+                    "show"
+                );
+
+            const isTyping =
+                activeElement &&
+                (activeElement.tagName === "INPUT" ||
+                 activeElement.tagName === "TEXTAREA" ||
+                 activeElement.tagName === "SELECT");
+
+            return (
+                isEditing ||
+                isShowingSuccess ||
+                isTyping ||
+                window.adminMutationInProgress
+            );
+
+        }
+
+
+        function refreshDashboardWhenSafe() {
+
+            if (dashboardIsBusy()) {
+                pendingDashboardRefresh = true;
+                return;
+            }
+
+            window.location.reload();
+
+        }
+
+
+        window.processPendingDashboardRefresh =
+            function() {
+
+                if (!pendingDashboardRefresh) {
+                    return;
+                }
+
+                if (dashboardIsBusy()) {
+                    return;
+                }
+
+                pendingDashboardRefresh = false;
+                window.location.reload();
+
+            };
+
+
+        const eventSource =
+            new EventSource(
+                "/api/admin/events"
+            );
+
+
+        eventSource.addEventListener(
+            "data_changed",
+            function() {
+
+                refreshDashboardWhenSafe();
+
+            }
+        );
+
+
+        eventSource.onerror =
+            function() {
+
+                // EventSource automatically reconnects if the
+                // connection is temporarily interrupted.
+                // There is no polling or refresh timer here.
+
+            };
+
+
+        document.addEventListener(
+            "focusout",
+            function() {
+
+                window.processPendingDashboardRefresh();
+
+            }
+        );
+
+
+        const qrModal =
+            document.getElementById(
+                "qrModal"
+            );
+
+        if (qrModal) {
+
+            qrModal.addEventListener(
+                "click",
+                function(event) {
+
+                    if (event.target === qrModal) {
+                        closeQrModal();
+                    }
+
+                }
+            );
+
+        }
+
+    })();
+</script>
+
+</body>
+
+</html>

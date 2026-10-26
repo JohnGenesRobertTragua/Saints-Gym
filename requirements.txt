@@ -1,0 +1,8 @@
+Flask
+qrcode
+Pillow
+phonenumbers
+waitress
+
+gunicorn
+python-dotenv

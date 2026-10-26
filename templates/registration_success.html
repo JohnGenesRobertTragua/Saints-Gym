@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Saints Gym - Registration Submitted</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+
+<style>
+    :root {
+        --saints-black: #0d0d0d;
+        --saints-panel: #141414;
+        --saints-panel-2: #1c1c1c;
+        --saints-gold: #d6a72c;
+        --saints-gold-bright: #f0c34d;
+        --saints-gold-soft: #9d7720;
+        --saints-white: #f5f5f5;
+        --saints-muted: #b8b8b8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 14px;
+        background:
+            radial-gradient(circle at 50% 15%, rgba(214,167,44,.10), transparent 35%),
+            linear-gradient(145deg, #090909 0%, #111111 55%, #0a0a0a 100%);
+        color: var(--saints-white);
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .registration-container {
+        width: min(100%, 430px);
+        padding: 28px 26px 24px;
+        background: rgba(18,18,18,.98);
+        border: 1px solid var(--saints-gold-soft);
+        border-radius: 14px;
+        box-shadow: 0 18px 45px rgba(0,0,0,.55), 0 0 28px rgba(214,167,44,.08);
+    }
+
+    .gym-header {
+        text-align: center;
+        margin-bottom: 22px;
+    }
+
+    .gym-header h1 {
+        margin: 0;
+        color: var(--saints-gold-bright);
+        font-size: clamp(26px, 7vw, 34px);
+        line-height: 1.05;
+        letter-spacing: .5px;
+        text-shadow: 0 0 14px rgba(214,167,44,.18);
+    }
+
+    .gym-header p {
+        margin: 9px 0 0;
+        color: var(--saints-muted);
+        font-size: 13px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--saints-gold-bright);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .form-group input {
+        width: 100%;
+        min-height: 43px;
+        padding: 10px 12px;
+        border: 1px solid #555;
+        border-radius: 7px;
+        background: var(--saints-panel-2);
+        color: var(--saints-white);
+        font-size: 13px;
+        outline: none;
+    }
+
+    .form-group input:focus {
+        border-color: var(--saints-gold);
+        box-shadow: 0 0 0 2px rgba(214,167,44,.14);
+    }
+
+    .registration-container > p {
+        color: var(--saints-white) !important;
+    }
+
+    .registration-container form button,
+    .registration-container > form > button {
+        width: 100%;
+        min-height: 43px;
+        border: 1px solid var(--saints-gold);
+        border-radius: 7px;
+        background: linear-gradient(180deg, #efc64d 0%, #d6a72c 100%);
+        color: #111;
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+        transition: .15s ease;
+    }
+
+    .registration-container form button:hover {
+        background: linear-gradient(180deg, #f5d66b 0%, #e0b638 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 5px 16px rgba(214,167,44,.18);
+    }
+
+    .menu-button {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 43px;
+        padding: 10px 14px;
+        border: 1px solid #666 !important;
+        border-radius: 7px !important;
+        background: transparent !important;
+        color: #d0d0d0 !important;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: .15s ease;
+    }
+
+    .menu-button:hover {
+        border-color: var(--saints-gold) !important;
+        color: var(--saints-gold-bright) !important;
+        background: rgba(214,167,44,.06) !important;
+    }
+
+    .cancel-button {
+        margin-top: 10px;
+    }
+
+    @media (max-width: 480px) {
+        body { padding: 14px 10px; }
+        .registration-container { padding: 24px 18px 20px; border-radius: 12px; }
+    }
+</style>
+
+</head>
+
+<body>
+
+    <div class="registration-container">
+
+        <div class="gym-header">
+
+            <h1>
+                REGISTRATION<br>
+                SUBMITTED
+            </h1>
+
+            <p>
+                Welcome to Saints Gym!
+            </p>
+
+        </div>
+
+
+        <!-- CUSTOMER ID -->
+
+        <div class="form-group">
+
+            <label>
+                Customer ID
+            </label>
+
+            <input
+                type="text"
+                value="{{ member_id }}"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- NAME -->
+
+        <div class="form-group">
+
+            <label>
+                Name
+            </label>
+
+            <input
+                type="text"
+                value="{{ surname }}, {{ first_name }}"
+                readonly
+            >
+
+        </div>
+
+
+        <!-- SUCCESS MESSAGE -->
+
+        <p
+            style="
+                text-align: center;
+                margin-top: 8px;
+                margin-bottom: 12px;
+                font-size: 13px;
+            "
+        >
+            Your registration has been submitted successfully. You may check in now while waiting for the admin to accept or reject your registration.
+        </p>
+
+
+        <!-- SCREENSHOT REMINDER -->
+
+        <div
+            style="
+                text-align: center;
+                margin-bottom: 15px;
+                padding: 10px 12px;
+                background: #3a1111;
+                border: 1px solid #d64545;
+                border-radius: 6px;
+                color: #ff6b6b;
+                font-size: 12px;
+                line-height: 1.5;
+            "
+        >
+
+            📸 <strong style="color: #ff4d4d;">Important:</strong><br>
+
+            <span style="color: #ff6b6b;">
+                Please take a screenshot of this page
+                so you won't forget your details,
+                especially your <strong style="color: #ff4d4d;">Customer ID</strong>.
+            </span>
+
+        </div>
+
+
+        <!-- WAITING FOR ADMIN -->
+        <div
+            style="
+                text-align: center;
+                margin-bottom: 15px;
+                padding: 12px 14px;
+                background: rgba(214,167,44,.10);
+                border: 1px solid var(--saints-gold);
+                border-radius: 6px;
+                color: var(--saints-gold-bright);
+                font-size: 13px;
+                line-height: 1.5;
+            "
+        >
+            You may check in now as a temporary member while your registration is being reviewed.
+        </div>
+
+
+        <!-- CHECK IN NOW -->
+
+        <form
+            method="POST"
+            action="/register-check-in"
+            style="margin-bottom: 10px;"
+        >
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <input
+                type="hidden"
+                name="member_id"
+                value="{{ member_id }}"
+            >
+
+            <button type="submit">
+                CHECK IN NOW
+            </button>
+
+        </form>
+
+
+        <!-- BACK TO MAIN MENU -->
+
+        <a
+            href="/"
+            class="menu-button cancel-button"
+            style="margin-top: 0;"
+        >
+            BACK TO MAIN MENU
+        </a>
+
+    </div>
+
+</body>
+
+</html>
