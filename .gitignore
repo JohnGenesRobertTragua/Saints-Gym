@@ -17,6 +17,7 @@ ENV/
 # Local database and SQLite files
 gym.db
 *.db
+!gym.db
 *.sqlite
 *.sqlite3
 
