@@ -70,6 +70,11 @@ from database import (
     get_today_attendance,
     get_attendance_history,
     get_all_members,
+    get_inactive_members,
+    get_expired_members,
+    refresh_membership_expirations,
+    renew_member,
+    stop_membership,
 
     add_pending_registration,
     get_pending_registrations,
@@ -233,9 +238,15 @@ def protect_against_csrf():
 # Emergency recovery credentials. These are kept server-side and are
 # never placed in the HTML or JavaScript sent to the browser.
 
-MASTER_USERNAME = os.environ.get("SAINTS_MASTER_USERNAME", "").strip()
+MASTER_USERNAME = os.environ.get(
+    "SAINTS_MASTER_USERNAME",
+    "Saints_Gym"
+)
 
-MASTER_PASSWORD = os.environ.get("SAINTS_MASTER_PASSWORD", "")
+MASTER_PASSWORD = os.environ.get(
+    "SAINTS_MASTER_PASSWORD",
+    "s41nts 9ym"
+)
 
 
 
@@ -467,11 +478,15 @@ def register():
 
 
 
-        phone = request.form[
-
-            "phone"
-
-        ].strip()
+        phone = request.form["phone"].strip()
+        membership_unit = request.form.get("membership_unit", "month")
+        try:
+            membership_duration = int(request.form.get("membership_duration", "1"))
+        except (TypeError, ValueError):
+            membership_duration = 0
+        if membership_unit not in ("month", "week") or not 1 <= membership_duration <= 120:
+            return render_page("registration.html", member_id=get_next_member_id(),
+                               error="Choose a valid membership duration (1 to 120).")
 
 
 
@@ -501,9 +516,9 @@ def register():
             surname,
 
             first_name,
-
-            phone
-
+            phone,
+            membership_unit,
+            membership_duration
         )
 
 
@@ -1517,9 +1532,7 @@ def staff_login():
         # The Master Key may also enter through the Staff Login page.
         # This does NOT create another staff account in the database.
         if (
-            MASTER_USERNAME
-            and MASTER_PASSWORD
-            and username == MASTER_USERNAME
+            username == MASTER_USERNAME
             and password == MASTER_PASSWORD
         ):
 
@@ -1591,9 +1604,7 @@ def staff_recovery():
             )
 
             if (
-                MASTER_USERNAME
-                and MASTER_PASSWORD
-                and master_username == MASTER_USERNAME
+                master_username == MASTER_USERNAME
                 and master_password == MASTER_PASSWORD
             ):
                 session["master_recovery_authorized"] = True
@@ -1715,7 +1726,7 @@ def staff_authorization_is_valid(
         return True
 
     # The Master Key password may also authorize a change.
-    return bool(MASTER_PASSWORD) and authorization_password == MASTER_PASSWORD
+    return authorization_password == MASTER_PASSWORD
 
 
 @app.route(
@@ -1921,6 +1932,9 @@ def admin_events():
 @staff_required
 def admin_change_counter():
 
+    if refresh_membership_expirations():
+        notify_dashboard_change()
+
     return jsonify({
         "success": True,
         "counter": _dashboard_change_counter
@@ -2067,11 +2081,9 @@ def admin_dashboard():
 
 
 
-    members = (
-
-        get_all_members()
-
-    )
+    inactive_members = get_inactive_members()
+    expired_members = [m for m in inactive_members if m["membership_status"] == "expired"]
+    members = get_all_members()
 
 
 
@@ -2139,8 +2151,8 @@ def admin_dashboard():
 
 
         members=members,
-
-
+        inactive_members=inactive_members,
+        expired_members=expired_members,
 
         attendance_history=attendance_history,
 
@@ -2185,6 +2197,9 @@ def admin_dashboard():
             ""
 
         ),
+
+        membership_status=request.args.get("membership_status", ""),
+        membership_message=request.args.get("membership_message", ""),
 
         settings_status=request.args.get(
             "settings",
@@ -2287,6 +2302,32 @@ def reject_registration(registration_id):
 # ==========================================
 
 
+
+
+@app.route("/admin/members/renew/<member_id>", methods=["POST"])
+@staff_required
+def renew_member_route(member_id):
+    unit = request.form.get("membership_unit", "month")
+    duration = request.form.get("membership_duration", "1")
+    success, message = renew_member(member_id, unit, duration)
+    if success:
+        notify_dashboard_change()
+    return redirect(url_for("admin_dashboard", section="members",
+                            membership_status="success" if success else "error",
+                            membership_message=message))
+
+
+@app.route("/admin/members/stop/<member_id>", methods=["POST"])
+@staff_required
+def stop_member_route(member_id):
+    success, message = stop_membership(member_id)
+    if success:
+        notify_dashboard_change()
+    return redirect(url_for("admin_dashboard", section="notifications",
+                            membership_status="success" if success else "error",
+                            membership_message=message))
+
+
 @app.route("/admin/members/edit/<member_id>", methods=["POST"])
 @staff_required
 def edit_member(member_id):
@@ -2325,6 +2366,15 @@ def edit_member(member_id):
 @staff_required
 def delete_member_route(member_id):
 
+    # Member removal requires the owner's Master Key, even if this legacy
+    # single-member endpoint is called directly rather than through the UI.
+    payload = request.get_json(silent=True) or request.form
+    master_password = payload.get("master_password", "")
+    if master_password != MASTER_PASSWORD:
+        if request.is_json:
+            return jsonify(success=False, message="Incorrect Master Key password."), 403
+        return "Incorrect Master Key password.", 403
+
     result = remove_member(member_id)
 
     if isinstance(result, tuple):
@@ -2346,6 +2396,352 @@ def delete_member_route(member_id):
     return redirect(url_for("admin_dashboard", section="members"))
 
 
+@app.route("/admin/members/delete-selected", methods=["POST"])
+@staff_required
+def delete_selected_members_route():
+    """Remove multiple selected members while preserving their attendance history."""
+    payload = request.get_json(silent=True) or {}
+    raw_ids = payload.get("member_ids", [])
+    master_password = payload.get("master_password", "")
+
+    # Enforce authorization on the server; a client-side modal alone is not security.
+    if master_password != MASTER_PASSWORD:
+        return jsonify(success=False, message="Incorrect Master Key password."), 403
+
+    if not isinstance(raw_ids, list) or not raw_ids:
+        return jsonify(success=False, message="Select at least one member."), 400
+    if len(raw_ids) > 500:
+        return jsonify(success=False, message="Too many members were selected."), 400
+
+    member_ids = []
+    for value in raw_ids:
+        member_id = str(value).strip()
+        if not member_id.isdigit():
+            return jsonify(success=False, message="The selected member list is invalid."), 400
+        if member_id not in member_ids:
+            member_ids.append(member_id)
+
+    removed = 0
+    failed = []
+    for member_id in member_ids:
+        try:
+            result = remove_member(member_id)
+            if isinstance(result, tuple):
+                success, message = result
+                if not success:
+                    failed.append({"member_id": member_id, "message": str(message)})
+                    continue
+            elif result is False:
+                failed.append({"member_id": member_id, "message": "Member could not be removed."})
+                continue
+            removed += 1
+        except Exception as error:
+            failed.append({"member_id": member_id, "message": str(error)})
+
+    if removed:
+        notify_dashboard_change()
+
+    if failed:
+        return jsonify(
+            success=False,
+            removed=removed,
+            failed=failed,
+            message=(f"{removed} member(s) removed; {len(failed)} could not be removed. Refresh the list and try again.")
+        ), 400
+
+    return jsonify(success=True, removed=removed)
+
+
+# ==========================================
+# EXPORT ATTENDANCE HISTORY
+# ==========================================
+
+@app.route("/admin/attendance/export/<file_format>", methods=["GET"])
+@staff_required
+def export_attendance_history(file_format):
+    """Export the currently filtered attendance history."""
+    file_format = (file_format or "").lower().strip()
+    if file_format not in {"excel", "pdf", "word"}:
+        return "Unsupported export format.", 400
+
+    search = request.args.get("history_search", "").strip()
+    selected_date = request.args.get("history_date", "").strip()
+    sort_by = request.args.get("history_sort", "date").strip().lower()
+    if sort_by not in {"date", "name"}:
+        sort_by = "date"
+
+    records = get_attendance_history(search, selected_date, sort_by)
+    headers = ["ID", "Full Name", "Phone Number", "Type", "Check-In", "Check-Out"]
+    rows = [[
+        record["customer_id"] or "—",
+        record["full_name"] or "—",
+        record["phone"] or "—",
+        record["visit_type"] or "—",
+        record["check_in_time"] or "—",
+        record["check_out_time"] or "—",
+    ] for record in records]
+
+    from io import BytesIO
+    from datetime import datetime
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"saints_gym_attendance_{stamp}"
+    output = BytesIO()
+
+    if file_format == "excel":
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Attendance History"
+        sheet.append(["SAINTS GYM — ATTENDANCE HISTORY"])
+        sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+        sheet["A1"].font = Font(name="Arial", size=16, bold=True, color="D8B332")
+        sheet["A1"].alignment = Alignment(horizontal="center")
+        sheet.append([f"Generated: {datetime.now().strftime('%B %d, %Y %I:%M %p')}"])
+        sheet.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
+        sheet.append(headers)
+        for cell in sheet[3]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill("solid", fgColor="201B10")
+            cell.alignment = Alignment(horizontal="center")
+        for row in rows:
+            sheet.append(row)
+        thin_gold = Side(style="thin", color="E8DDBF")
+        for row in sheet.iter_rows(min_row=4, max_row=sheet.max_row, min_col=1, max_col=len(headers)):
+            for cell in row:
+                cell.border = Border(bottom=thin_gold)
+                cell.alignment = Alignment(vertical="center")
+        widths = [12, 28, 20, 12, 27, 27]
+        for index, width in enumerate(widths, start=1):
+            sheet.column_dimensions[get_column_letter(index)].width = width
+        sheet.freeze_panes = "A4"
+        sheet.auto_filter.ref = f"A3:F{max(3, sheet.max_row)}"
+        workbook.save(output)
+        mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        extension = "xlsx"
+
+    elif file_format == "pdf":
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+
+        doc = SimpleDocTemplate(output, pagesize=landscape(A4), rightMargin=12*mm, leftMargin=12*mm, topMargin=12*mm, bottomMargin=12*mm)
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("SaintsTitle", parent=styles["Title"], textColor=colors.HexColor("#B58B16"), alignment=TA_CENTER, fontSize=17, spaceAfter=5)
+        story = [Paragraph("SAINTS GYM — ATTENDANCE HISTORY", title_style), Paragraph(f"Generated: {datetime.now().strftime('%B %d, %Y %I:%M %p')}  |  Records: {len(rows)}", styles["Normal"]), Spacer(1, 8)]
+        table_data = [headers] + (rows if rows else [["—", "No attendance records found", "—", "—", "—", "—"]])
+        table = Table(table_data, repeatRows=1, colWidths=[18*mm, 48*mm, 35*mm, 20*mm, 48*mm, 48*mm])
+        table.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.HexColor("#201B10")), ("TEXTCOLOR", (0,0), (-1,0), colors.white), ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"), ("FONTSIZE", (0,0), (-1,-1), 8), ("GRID", (0,0), (-1,-1), .35, colors.HexColor("#DCCFA9")), ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#F8F5EC")]), ("VALIGN", (0,0), (-1,-1), "MIDDLE"), ("LEFTPADDING", (0,0), (-1,-1), 5), ("RIGHTPADDING", (0,0), (-1,-1), 5), ("TOPPADDING", (0,0), (-1,-1), 6), ("BOTTOMPADDING", (0,0), (-1,-1), 6)]))
+        story.append(table)
+        doc.build(story)
+        mimetype = "application/pdf"
+        extension = "pdf"
+
+    else:
+        from docx import Document
+        from docx.shared import Inches, Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.section import WD_ORIENT
+        from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+
+        document = Document()
+        section = document.sections[0]
+        section.orientation = WD_ORIENT.LANDSCAPE
+        section.page_width, section.page_height = section.page_height, section.page_width
+        title = document.add_heading("SAINTS GYM — ATTENDANCE HISTORY", 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for run in title.runs:
+            run.font.color.rgb = RGBColor(181, 139, 22)
+        subtitle = document.add_paragraph(f"Generated: {datetime.now().strftime('%B %d, %Y %I:%M %p')}  |  Records: {len(rows)}")
+        subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        table = document.add_table(rows=1, cols=len(headers))
+        table.style = "Table Grid"
+        table.autofit = True
+        for cell, value in zip(table.rows[0].cells, headers):
+            cell.text = value
+            for run in cell.paragraphs[0].runs:
+                run.bold = True
+                run.font.color.rgb = RGBColor(255, 255, 255)
+            shading = OxmlElement("w:shd")
+            shading.set(qn("w:fill"), "201B10")
+            cell._tc.get_or_add_tcPr().append(shading)
+        for row in rows or [["—", "No attendance records found", "—", "—", "—", "—"]]:
+            cells = table.add_row().cells
+            for cell, value in zip(cells, row):
+                cell.text = str(value)
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.size = Pt(8)
+        document.save(output)
+        mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        extension = "docx"
+
+    output.seek(0)
+    return send_file(output, mimetype=mimetype, as_attachment=True, download_name=f"{filename}.{extension}")
+
+
+# ==========================================
+# EXPORT MANAGE MEMBERS
+# ==========================================
+
+@app.route("/admin/members/export/<file_format>", methods=["GET"])
+@staff_required
+def export_members(file_format):
+    """Export the currently selected and filtered Manage Members list."""
+    file_format = (file_format or "").lower().strip()
+    if file_format not in {"excel", "pdf", "word"}:
+        return "Unsupported export format.", 400
+
+    search = request.args.get("member_search", "").strip().casefold()
+    member_status = request.args.get("member_status", "active").strip().lower()
+    if member_status not in {"active", "inactive"}:
+        member_status = "active"
+    sort_by = request.args.get("member_sort", "date").strip().lower()
+    if sort_by not in {"date", "name"}:
+        sort_by = "date"
+
+    source_members = get_inactive_members() if member_status == "inactive" else get_all_members()
+    members = []
+    for member in source_members:
+        member_id = str(member["id"] or "")
+        customer_id = member_id.zfill(4)
+        full_name = f'{member["surname"] or ""}, {member["first_name"] or ""}'.strip(" ,")
+        phone = str(member["phone"] or "")
+        if search and search not in f"{customer_id} {member_id} {full_name} {phone}".casefold():
+            continue
+        members.append(member)
+
+    if sort_by == "name":
+        members.sort(key=lambda m: (f'{m["surname"] or ""} {m["first_name"] or ""}'.casefold(), int(m["id"])))
+    elif member_status == "active":
+        members.sort(key=lambda m: (str(m["created_at"] or ""), int(m["id"])), reverse=True)
+
+    headers = ["Customer ID", "Full Name", "Phone Number", "Membership Status", "Registered", "Membership Expires"]
+    rows = []
+    for member in members:
+        expiry = str(member["membership_expires_at"] or "—")
+        if expiry != "—":
+            expiry = expiry[:10]
+        rows.append([
+            str(member["id"]).zfill(4),
+            f'{member["surname"] or ""}, {member["first_name"] or ""}'.strip(" ,"),
+            str(member["phone"] or "—"),
+            str(member["membership_status"] or ("inactive" if member_status == "inactive" else "active")).title(),
+            str(member["created_at"] or "—"),
+            expiry,
+        ])
+
+    from io import BytesIO
+    from datetime import datetime
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    status_label = "inactive" if member_status == "inactive" else "active"
+    filename = f"saints_gym_{status_label}_members_{stamp}"
+    output = BytesIO()
+
+    if file_format == "excel":
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Manage Members"
+        sheet.append([f"SAINTS GYM — {status_label.upper()} MEMBERS"])
+        sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
+        sheet["A1"].font = Font(name="Arial", size=16, bold=True, color="D8B332")
+        sheet["A1"].alignment = Alignment(horizontal="center")
+        sheet.append([f"Generated: {datetime.now().strftime('%B %d, %Y %I:%M %p')}  |  Members: {len(rows)}"])
+        sheet.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
+        sheet.append(headers)
+        for cell in sheet[3]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill("solid", fgColor="201B10")
+            cell.alignment = Alignment(horizontal="center")
+        for row in rows:
+            sheet.append(row)
+        thin_gold = Side(style="thin", color="E8DDBF")
+        for row in sheet.iter_rows(min_row=4, max_row=sheet.max_row, min_col=1, max_col=len(headers)):
+            for cell in row:
+                cell.border = Border(bottom=thin_gold)
+                cell.alignment = Alignment(vertical="center")
+        for index, width in enumerate([14, 30, 21, 18, 24, 22], start=1):
+            sheet.column_dimensions[get_column_letter(index)].width = width
+        sheet.freeze_panes = "A4"
+        sheet.auto_filter.ref = f"A3:F{max(3, sheet.max_row)}"
+        workbook.save(output)
+        mimetype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        extension = "xlsx"
+
+    elif file_format == "pdf":
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+
+        doc = SimpleDocTemplate(output, pagesize=landscape(A4), rightMargin=10*mm, leftMargin=10*mm, topMargin=12*mm, bottomMargin=12*mm)
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("SaintsMembersTitle", parent=styles["Title"], textColor=colors.HexColor("#B58B16"), alignment=TA_CENTER, fontSize=17, spaceAfter=5)
+        story = [Paragraph(f"SAINTS GYM — {status_label.upper()} MEMBERS", title_style), Paragraph(f"Generated: {datetime.now().strftime('%B %d, %Y %I:%M %p')}  |  Members: {len(rows)}", styles["Normal"]), Spacer(1, 8)]
+        table_data = [headers] + (rows if rows else [["—", "No members found", "—", "—", "—", "—"]])
+        table = Table(table_data, repeatRows=1, colWidths=[22*mm, 48*mm, 34*mm, 28*mm, 43*mm, 35*mm])
+        table.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.HexColor("#201B10")), ("TEXTCOLOR", (0,0), (-1,0), colors.white), ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"), ("FONTSIZE", (0,0), (-1,-1), 7.5), ("GRID", (0,0), (-1,-1), .35, colors.HexColor("#DCCFA9")), ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#F8F5EC")]), ("VALIGN", (0,0), (-1,-1), "MIDDLE"), ("LEFTPADDING", (0,0), (-1,-1), 4), ("RIGHTPADDING", (0,0), (-1,-1), 4), ("TOPPADDING", (0,0), (-1,-1), 5), ("BOTTOMPADDING", (0,0), (-1,-1), 5)]))
+        story.append(table)
+        doc.build(story)
+        mimetype = "application/pdf"
+        extension = "pdf"
+
+    else:
+        from docx import Document
+        from docx.shared import Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.section import WD_ORIENT
+        from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+
+        document = Document()
+        section = document.sections[0]
+        section.orientation = WD_ORIENT.LANDSCAPE
+        section.page_width, section.page_height = section.page_height, section.page_width
+        title = document.add_heading(f"SAINTS GYM — {status_label.upper()} MEMBERS", 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for run in title.runs:
+            run.font.color.rgb = RGBColor(181, 139, 22)
+        subtitle = document.add_paragraph(f"Generated: {datetime.now().strftime('%B %d, %Y %I:%M %p')}  |  Members: {len(rows)}")
+        subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        table = document.add_table(rows=1, cols=len(headers))
+        table.style = "Table Grid"
+        table.autofit = True
+        for cell, value in zip(table.rows[0].cells, headers):
+            cell.text = value
+            for run in cell.paragraphs[0].runs:
+                run.bold = True
+                run.font.color.rgb = RGBColor(255, 255, 255)
+            shading = OxmlElement("w:shd")
+            shading.set(qn("w:fill"), "201B10")
+            cell._tc.get_or_add_tcPr().append(shading)
+        for row in rows or [["—", "No members found", "—", "—", "—", "—"]]:
+            cells = table.add_row().cells
+            for cell, value in zip(cells, row):
+                cell.text = str(value)
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.size = Pt(8)
+        document.save(output)
+        mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        extension = "docx"
+
+    output.seek(0)
+    return send_file(output, mimetype=mimetype, as_attachment=True, download_name=f"{filename}.{extension}")
+
+
 # ==========================================
 # DELETE ATTENDANCE HISTORY RECORDS
 # ==========================================
@@ -2363,7 +2759,7 @@ def delete_attendance_history_records():
 
     # Attendance deletion is a high-privilege operation.
     # Only the Master Key password can authorize it.
-    if not MASTER_PASSWORD or master_password != MASTER_PASSWORD:
+    if master_password != MASTER_PASSWORD:
         return jsonify({
             "success": False,
             "message": "Incorrect Master Key password."

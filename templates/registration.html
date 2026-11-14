@@ -322,6 +322,22 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                <label for="membership_unit">Membership Duration</label>
+                <select id="membership_unit" name="membership_unit" required
+                    style="width:100%;height:43px;padding:0 11px;background:#202020;color:#fff;border:1px solid #4a4a4a;border-radius:8px;">
+                    <option value="" selected disabled>Choose Month or Week</option>
+                    <option value="month">Month (30 days each)</option>
+                    <option value="week">Week (7 days each)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="membership-duration-group" hidden>
+                <label for="membership_duration">Number of Months / Weeks</label>
+                <input type="number" id="membership_duration" name="membership_duration"
+                    min="1" max="120" placeholder="Enter number of months / weeks" required disabled>
+            </div>
+
             <div class="registration-actions">
                 <button type="submit">REGISTER</button>
 
@@ -330,6 +346,29 @@
 
         </form>
     </div>
+
+    <script>
+        // Show the quantity field only after a membership unit is selected.
+        (function () {
+            const unitSelect = document.getElementById("membership_unit");
+            const durationGroup = document.getElementById("membership-duration-group");
+            const durationInput = document.getElementById("membership_duration");
+
+            function updateMembershipDurationVisibility() {
+                const hasSelection = unitSelect.value === "month" || unitSelect.value === "week";
+                durationGroup.hidden = !hasSelection;
+                durationInput.disabled = !hasSelection;
+                durationInput.required = hasSelection;
+
+                if (!hasSelection) {
+                    durationInput.value = "";
+                }
+            }
+
+            unitSelect.addEventListener("change", updateMembershipDurationVisibility);
+            updateMembershipDurationVisibility();
+        })();
+    </script>
 
     <script src="{{ url_for('static', filename='phone.js') }}"></script>
 

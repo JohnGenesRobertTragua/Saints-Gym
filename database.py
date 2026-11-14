@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -322,6 +322,26 @@ def create_tables():
 
 # ==================================
 
+        # MEMBERSHIP DURATION / EXPIRATION MIGRATION
+        member_columns = {row["name"] for row in connection.execute("PRAGMA table_info(members)").fetchall()}
+        for column_name, column_type, default_sql in [
+            ("membership_unit", "TEXT", "'month'"),
+            ("membership_duration", "INTEGER", "1"),
+            ("membership_start", "TEXT", "NULL"),
+            ("membership_expires_at", "TEXT", "NULL"),
+            ("membership_status", "TEXT", "'active'"),
+        ]:
+            if column_name not in member_columns:
+                connection.execute(f"ALTER TABLE members ADD COLUMN {column_name} {column_type} DEFAULT {default_sql}")
+
+        pending_columns = {row["name"] for row in connection.execute("PRAGMA table_info(pending_registrations)").fetchall()}
+        for column_name, column_type, default_sql in [
+            ("membership_unit", "TEXT", "'month'"),
+            ("membership_duration", "INTEGER", "1"),
+        ]:
+            if column_name not in pending_columns:
+                connection.execute(f"ALTER TABLE pending_registrations ADD COLUMN {column_name} {column_type} DEFAULT {default_sql}")
+
         # STAFF / ADMIN USERS
 
         # ==================================
@@ -501,7 +521,7 @@ def get_next_member_id():
 # PENDING MEMBER REGISTRATIONS
 # ==========================================
 
-def add_pending_registration(surname, first_name, phone):
+def add_pending_registration(surname, first_name, phone, membership_unit='month', membership_duration=1):
     connection = get_connection()
     try:
         next_id = _allocate_member_id(connection)
@@ -514,9 +534,9 @@ def add_pending_registration(surname, first_name, phone):
 
         connection.execute("""
             INSERT INTO pending_registrations
-            (id, surname, first_name, phone)
-            VALUES (?, ?, ?, ?)
-        """, (next_id, surname.strip(), first_name.strip(), phone.strip()))
+            (id, surname, first_name, phone, membership_unit, membership_duration)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (next_id, surname.strip(), first_name.strip(), phone.strip(), membership_unit, int(membership_duration)))
 
         connection.commit()
         return f"{next_id:04d}"
@@ -547,7 +567,8 @@ def get_pending_registrations():
                 first_name,
 
                 phone,
-
+                membership_unit,
+                membership_duration,
                 submitted_at
 
             FROM pending_registrations
@@ -605,7 +626,7 @@ def accept_pending_registration(registration_id):
     connection = get_connection()
     try:
         pending = connection.execute("""
-            SELECT id, surname, first_name, phone
+            SELECT id, surname, first_name, phone, membership_unit, membership_duration
             FROM pending_registrations
             WHERE id = ?
         """, (database_id,)).fetchone()
@@ -628,6 +649,19 @@ def accept_pending_registration(registration_id):
                 UPDATE members SET registration_status = 'approved'
                 WHERE id = ?
             """, (database_id,))
+
+        duration = max(1, int(pending["membership_duration"] or 1))
+        unit = pending["membership_unit"] if pending["membership_unit"] in ("month", "week") else "month"
+        start_date = datetime.now()
+        expiry_date = start_date + timedelta(days=duration * (30 if unit == "month" else 7))
+        connection.execute("""
+            UPDATE members
+            SET membership_unit = ?, membership_duration = ?,
+                membership_start = ?, membership_expires_at = ?,
+                membership_status = 'active'
+            WHERE id = ?
+        """, (unit, duration, start_date.isoformat(timespec="seconds"),
+              expiry_date.isoformat(timespec="seconds"), database_id))
 
         connection.execute("DELETE FROM pending_registrations WHERE id = ?", (database_id,))
         connection.commit()
@@ -818,12 +852,15 @@ def get_all_members(search="", search_field="all"):
 
                 phone,
 
-                registered_at AS created_at
+                registered_at AS created_at,
+                membership_unit, membership_duration, membership_start,
+                membership_expires_at, membership_status
 
             FROM members
 
             WHERE active = 1
               AND registration_status = 'approved'
+              AND membership_status = 'active'
 
         """
 
@@ -905,6 +942,98 @@ def get_all_members(search="", search_field="all"):
 
 
 
+
+
+def refresh_membership_expirations():
+    connection = get_connection()
+    try:
+        cursor = connection.execute("""
+            UPDATE members
+            SET membership_status = 'expired'
+            WHERE active = 1 AND registration_status = 'approved'
+              AND membership_status = 'active'
+              AND membership_expires_at IS NOT NULL
+              AND membership_expires_at <= ?
+        """, (datetime.now().isoformat(timespec="seconds"),))
+        connection.commit()
+        return cursor.rowcount
+    finally:
+        connection.close()
+
+
+def get_inactive_members():
+    connection = get_connection()
+    try:
+        connection.execute("SELECT 1")
+        refresh_membership_expirations()
+        return connection.execute("""
+            SELECT id, surname, first_name, phone, registered_at AS created_at,
+                   membership_unit, membership_duration, membership_start,
+                   membership_expires_at, membership_status
+            FROM members
+            WHERE active = 1 AND registration_status = 'approved'
+              AND membership_status IN ('expired', 'inactive')
+            ORDER BY membership_expires_at ASC, registered_at DESC, id DESC
+        """).fetchall()
+    finally:
+        connection.close()
+
+
+def get_expired_members():
+    # Refresh expiration status before presenting persistent renewal notices.
+    return [member for member in get_inactive_members()
+            if member["membership_status"] == "expired"]
+
+
+def renew_member(member_id, membership_unit, membership_duration):
+    try:
+        database_id = int(member_id)
+        duration = int(membership_duration)
+    except (TypeError, ValueError):
+        return False, "Invalid membership details."
+    if membership_unit not in ("month", "week") or not 1 <= duration <= 120:
+        return False, "Choose a valid duration."
+    connection = get_connection()
+    try:
+        member = connection.execute("""
+            SELECT id FROM members
+            WHERE id = ? AND active = 1 AND registration_status = 'approved'
+        """, (database_id,)).fetchone()
+        if member is None:
+            return False, "Member not found."
+        start_date = datetime.now()
+        expiry_date = start_date + timedelta(days=duration * (30 if membership_unit == "month" else 7))
+        connection.execute("""
+            UPDATE members
+            SET membership_unit = ?, membership_duration = ?,
+                membership_start = ?, membership_expires_at = ?,
+                membership_status = 'active'
+            WHERE id = ?
+        """, (membership_unit, duration, start_date.isoformat(timespec="seconds"),
+              expiry_date.isoformat(timespec="seconds"), database_id))
+        connection.commit()
+        return True, "Membership renewed successfully."
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+
+def stop_membership(member_id):
+    connection = get_connection()
+    try:
+        cursor = connection.execute("""
+            UPDATE members SET membership_status = 'inactive'
+            WHERE id = ? AND active = 1 AND registration_status = 'approved'
+              AND membership_status IN ('expired', 'active')
+        """, (int(member_id),))
+        connection.commit()
+        return (cursor.rowcount > 0, "Membership marked inactive." if cursor.rowcount else "Member not found.")
+    except (TypeError, ValueError):
+        return False, "Invalid customer ID."
+    finally:
+        connection.close()
 
 
 def update_member(
@@ -1148,18 +1277,17 @@ def get_member(member_id):
 
 
             WHERE id = ?
-
               AND active = 1
-
-
+              AND registration_status IN ('approved', 'pending')
+              AND membership_status = 'active'
+              AND (membership_expires_at IS NULL OR membership_expires_at > ?)
 
         """, (
 
 
 
             database_id,
-
-
+            datetime.now().isoformat(timespec="seconds"),
 
         )).fetchone()
 

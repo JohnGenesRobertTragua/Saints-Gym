@@ -9,8 +9,30 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes"
     >
+
+    <!-- On touch phones, render the existing desktop layout at a fixed CSS
+         width and set the initial zoom to fit the device. Users can still
+         pinch to zoom because user-scalable remains enabled. -->
+    <script>
+    (function () {
+        const isPhoneLike = window.matchMedia &&
+            window.matchMedia("(pointer: coarse) and (hover: none)").matches;
+        if (!isPhoneLike) return;
+
+        const desktopWidth = 1280;
+        const deviceWidth = (window.screen && window.screen.width) || 390;
+        const initialScale = Math.max(0.25, Math.min(1, deviceWidth / desktopWidth));
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute(
+                "content",
+                `width=${desktopWidth}, initial-scale=${initialScale.toFixed(4)}, minimum-scale=0.25, maximum-scale=5, user-scalable=yes, viewport-fit=cover`
+            );
+        }
+    })();
+    </script>
 
     <title>Saints Gym - Staff Dashboard</title>
 
@@ -687,7 +709,7 @@
             .admin-main {
                 width: calc(100% - 235px);
                 margin-left: 235px;
-                padding: 24px 28px 32px;
+                padding: 24px 28px 26px;
             }
 
             .page-header {
@@ -785,41 +807,37 @@
             table-layout: fixed;
         }
 
+        /* Attendance History has no checkbox column; rows are selected directly. */
         #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(1),
         #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(1) {
-            width: 54px;
+            width: 90px;
         }
 
         #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(2),
         #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(2) {
-            width: 90px;
+            width: 17%;
         }
 
         #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(3),
         #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(3) {
-            width: 17%;
+            width: 15%;
         }
 
         #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(4),
         #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(4) {
-            width: 15%;
-        }
-
-        #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(5),
-        #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(5) {
             width: 90px;
         }
 
+        #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(5),
+        #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(5),
         #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(6),
-        #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(6),
-        #attendanceHistorySection .attendance-history-grid .admin-table th:nth-child(7),
-        #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(7) {
+        #attendanceHistorySection .attendance-history-grid .admin-table td:nth-child(6) {
             width: 21%;
             white-space: nowrap;
         }
 
         #membersSection .members-grid .admin-table {
-            min-width: 820px;
+            min-width: 980px;
             table-layout: fixed;
         }
 
@@ -846,7 +864,12 @@
 
         #membersSection .members-grid .admin-table th:nth-child(5),
         #membersSection .members-grid .admin-table td:nth-child(5) {
-            width: 170px;
+            width: 160px;
+        }
+
+        #membersSection .members-grid .admin-table th:nth-child(6),
+        #membersSection .members-grid .admin-table td:nth-child(6) {
+            width: 210px;
         }
 
         .admin-table {
@@ -1050,26 +1073,6 @@
                 rgba(201, 162, 39, 0.18);
         }
 
-        .member-filter {
-            width: 160px;
-            height: 42px;
-
-            padding: 0 12px;
-
-            border:
-                1px solid #d9d0bd;
-
-            border-radius: 9px;
-
-            background: #ffffff;
-            color: #3f3a30;
-
-            outline: none;
-
-            font-size: 12px;
-
-            cursor: pointer;
-        }
 
         .member-count {
             padding: 0 12px;
@@ -1240,20 +1243,19 @@
             margin-left: auto;
         }
 
-        .history-select-all {
-            width: 15px;
-            height: 15px;
-            margin: 0;
-            accent-color: #c9a227;
+        #attendanceHistorySection .attendance-history-grid tbody tr[data-attendance-key] {
             cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        .history-row-checkbox {
-            width: 15px;
-            height: 15px;
-            margin: 0;
-            accent-color: #c9a227;
-            cursor: pointer;
+        #attendanceHistorySection .attendance-history-grid tbody tr.attendance-row-selected > td {
+            background: #dce9fb !important;
+            color: #172b4d;
+        }
+
+        #attendanceHistorySection .attendance-history-grid tbody tr.attendance-row-selected:hover > td {
+            background: #cbdcf5 !important;
         }
 
         .history-delete-button {
@@ -1285,12 +1287,15 @@
            ========================================================= */
 
         .settings-panel {
-            padding: 26px;
+            width: min(100%, 1000px);
+            margin: 22px auto 0;
+            padding: 0;
         }
 
         .settings-card {
-            max-width: 760px;
-            padding: 26px;
+            width: 100%;
+            max-width: none;
+            padding: 24px 26px;
             border: 1px solid var(--border);
             border-radius: var(--radius);
             background: #ffffff;
@@ -1329,8 +1334,9 @@
 
 
         .settings-message {
-            max-width: 760px;
-            margin: 0 0 18px;
+            width: min(100%, 1000px);
+            max-width: none;
+            margin: 0 auto 18px;
             padding: 12px 14px;
             border-radius: 10px;
             font-size: 12px;
@@ -1350,11 +1356,13 @@
         }
 
         .settings-security-grid {
-            max-width: 760px;
+            width: min(100%, 1000px);
+            max-width: none;
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-            margin-top: 18px;
+            align-items: start;
+            gap: 16px;
+            margin: 16px auto 0;
         }
 
         .settings-security-card {
@@ -1812,9 +1820,10 @@
         }
 
         .settings-security-note {
-            max-width: 760px;
-            margin-top: 18px;
-            padding: 14px 16px;
+            width: min(100%, 1000px);
+            max-width: none;
+            margin: 16px auto 0;
+            padding: 13px 16px;
             border-radius: 10px;
             background: #f3efe5;
             color: #5d5545;
@@ -1979,8 +1988,30 @@
 
 
         @media (max-width: 900px) {
+            .settings-panel,
+            .settings-security-grid,
+            .settings-security-note,
+            .settings-message {
+                width: 100%;
+            }
+
             .settings-security-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .settings-card {
+                padding: 20px;
+            }
+
+            .settings-security-toggle {
+                min-height: 64px;
+                padding: 0 16px;
+            }
+
+            .settings-security-content {
+                padding: 0 16px 16px;
             }
         }
 
@@ -2505,10 +2536,6 @@
                 align-items: stretch;
             }
 
-            .member-filter {
-                width: 100%;
-            }
-
             .member-count {
                 padding: 0;
             }
@@ -2565,7 +2592,698 @@
 
         }
 
-    </style>
+
+        .membership-renewal-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 7000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(17, 15, 11, 0.58);
+        }
+
+        .membership-renewal-modal.show {
+            display: flex;
+        }
+
+        .membership-renewal-dialog {
+            width: 100%;
+            max-width: 390px;
+            padding: 25px;
+            border: 1px solid #eee4d2;
+            border-radius: 16px;
+            background: #fffdf8;
+            box-shadow: 0 22px 65px rgba(0, 0, 0, 0.25);
+            animation: modalAppear 0.2s ease;
+        }
+
+        .membership-renewal-dialog h2 {
+            margin: 0;
+            color: #17140e;
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .membership-renewal-dialog p {
+            margin: 7px 0 19px;
+            color: #786f60;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .membership-renewal-field {
+            margin-bottom: 15px;
+        }
+
+        .membership-renewal-field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #393328;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .membership-renewal-field select,
+        .membership-renewal-field input {
+            width: 100%;
+            height: 42px;
+            padding: 0 11px;
+            border: 1px solid #ddd3c2;
+            border-radius: 8px;
+            background: #fff;
+            color: #211d16;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .membership-renewal-field select:focus,
+        .membership-renewal-field input:focus {
+            border-color: #c9a227;
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.16);
+        }
+
+        .membership-renewal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 9px;
+            margin-top: 20px;
+        }
+
+        .membership-renewal-cancel,
+        .membership-renewal-confirm {
+            min-height: 39px;
+            padding: 0 15px;
+            border: 0;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        .membership-renewal-cancel {
+            background: #f1eee7;
+            color: #514a3e;
+        }
+
+        .membership-renewal-confirm {
+            background: #d5ad2e;
+            color: #17130a;
+        }
+
+    
+
+        /* =========================================================
+           DASHBOARD SCROLL CONTAINMENT
+           Keep the sidebar and dashboard fixed to the viewport.
+           Only the Today's Attendance data grid scrolls.
+           ========================================================= */
+
+        .admin-sidebar {
+            overflow: hidden !important;
+            scrollbar-width: none !important;
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+        }
+
+        /* Apply the fixed dashboard layout only while Dashboard is active.
+           Other sections retain their existing page behavior. */
+        body:has(#dashboardSection:not(.hidden)) {
+            height: 100vh !important;
+            height: 100dvh !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) .admin-layout {
+            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) .admin-main {
+            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) .admin-content {
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .page-header,
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .dashboard-cards {
+            flex: 0 0 auto !important;
+        }
+
+        /* Compact dashboard statistic cards without changing their layout
+           or affecting cards in other sections. */
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .dashboard-cards .stat-card {
+            min-height: 104px !important;
+            padding: 14px 18px !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .dashboard-cards .stat-value {
+            margin-top: 8px !important;
+            font-size: 27px !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .dashboard-cards .stat-icon {
+            top: 13px !important;
+            right: 13px !important;
+            width: 29px !important;
+            height: 29px !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel > .panel-header {
+            flex: 0 0 auto !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel > .table-wrapper {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            max-height: none !important;
+            margin: 0 !important;
+            overflow: auto !important;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: #b9ad8c #f3efe5;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel > .table-wrapper::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel > .table-wrapper::-webkit-scrollbar-track {
+            background: #f3efe5;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel > .table-wrapper::-webkit-scrollbar-thumb {
+            background: #b9ad8c;
+            border: 2px solid #f3efe5;
+            border-radius: 8px;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel > .table-wrapper .admin-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        @media (max-width: 900px) {
+            body:has(#dashboardSection:not(.hidden)) .admin-main {
+                overflow: hidden !important;
+            }
+        }
+
+
+    
+        /* Dashboard attendance header: remove subtitle and reduce excess
+           vertical space above the table headings. */
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel .panel-header {
+            padding: 10px 22px !important;
+        }
+
+        body:has(#dashboardSection:not(.hidden)) #dashboardSection > .content-panel .panel-subtitle {
+            display: none !important;
+        }
+
+
+        /* Attendance History: mirror the proven Dashboard flex layout.
+           The section fills the available content area; only the table wrapper scrolls. */
+        body:has(#attendanceHistorySection:not(.hidden)) .admin-layout {
+            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) .admin-main {
+            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) .admin-content {
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .page-header {
+            flex: 0 0 auto !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .content-panel {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .content-panel > .history-toolbar {
+            flex: 0 0 auto !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .content-panel > .attendance-history-grid {
+            display: block !important;
+            flex: 1 1 0% !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            margin: 0 !important;
+            overflow: auto !important;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: #b9ad8c #f3efe5;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .content-panel > .attendance-history-grid::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .content-panel > .attendance-history-grid::-webkit-scrollbar-track {
+            background: #f3efe5;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .content-panel > .attendance-history-grid::-webkit-scrollbar-thumb {
+            background: #b9ad8c;
+            border: 2px solid #f3efe5;
+            border-radius: 8px;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection > .content-panel > .attendance-history-grid .admin-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+
+        /* Attendance History: reduce only the toolbar height above the grid. */
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection .history-toolbar {
+            padding: 8px 22px !important;
+            gap: 10px !important;
+            min-height: 0 !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection .history-search-input,
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection .history-date-input,
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection .history-delete-button {
+            height: 36px !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection .history-clear-button {
+            min-height: 36px !important;
+            height: 36px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        body:has(#attendanceHistorySection:not(.hidden)) #attendanceHistorySection .history-count {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+
+        /* Manage Members: use the same fixed-page / independently scrolling
+           grid layout established for Dashboard and Attendance History. */
+        body:has(#membersSection:not(.hidden)) {
+            height: 100vh !important;
+            height: 100dvh !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) .admin-layout {
+            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) .admin-main {
+            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) .admin-content {
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection > .page-header {
+            flex: 0 0 auto !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection > .content-panel {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+        }
+
+        /* Compact the search/filter row, keeping all controls functional. */
+        body:has(#membersSection:not(.hidden)) #membersSection > .content-panel > .management-toolbar {
+            flex: 0 0 auto !important;
+            padding: 8px 22px !important;
+            gap: 10px !important;
+            min-height: 0 !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection .member-search {
+            height: 36px !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection .member-count {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            white-space: nowrap;
+        }
+
+        /* Keep the Active/Inactive tabs compact and outside the scrolling grid. */
+        body:has(#membersSection:not(.hidden)) #membersSection > .content-panel > .member-status-tabs {
+            flex: 0 0 auto !important;
+            display: flex !important;
+            align-items: center !important;
+            min-height: 44px !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            padding: 0 0 0 12px !important;
+            gap: 8px !important;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection > .content-panel > .member-status-tabs button {
+            min-width: 0 !important;
+            min-height: 30px !important;
+            padding: 6px 9px !important;
+            font-size: 10px !important;
+            line-height: 1.2 !important;
+            border-radius: 7px !important;
+        }
+
+        /* The visible member list fills the remaining panel height.
+           Its own scrollbar handles long lists; the page stays fixed. */
+        body:has(#membersSection:not(.hidden)) #membersSection .members-grid {
+            flex: 1 1 0% !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            margin: 0 !important;
+            overflow: auto !important;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: #b9ad8c #f3efe5;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection .members-grid::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection .members-grid::-webkit-scrollbar-track {
+            background: #f3efe5;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection .members-grid::-webkit-scrollbar-thumb {
+            background: #b9ad8c;
+            border: 2px solid #f3efe5;
+            border-radius: 8px;
+        }
+
+        body:has(#membersSection:not(.hidden)) #membersSection .members-grid .admin-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+
+        /* Attendance History Save As native dropdown */
+        #attendanceHistorySection .history-export-actions { margin-left:0; }
+        #attendanceHistorySection .history-save-select {
+            width:104px;
+            min-width:104px;
+            max-width:104px;
+            min-height:36px;
+            box-sizing:border-box;
+            padding:0 20px 0 10px;
+            border:1px solid #e2d7c3;
+            border-radius:9px;
+            background:#fff;
+            color:#211d14;
+            font:inherit;
+            font-size:11px;
+            font-weight:600;
+            cursor:pointer;
+            white-space:nowrap;
+            appearance:auto;
+        }
+        #attendanceHistorySection .history-save-select:focus {
+            outline:2px solid rgba(216,179,50,.28);
+            outline-offset:1px;
+        }
+        #attendanceHistorySection .history-save-select option { background:#fff; color:#211d14; }
+
+        /* Manage Members Save As dropdown — match Attendance History control. */
+        #membersSection .member-export-actions {
+            flex: 0 0 auto;
+            margin-left: 0;
+        }
+        #membersSection .member-save-select {
+            width: 104px;
+            min-width: 104px;
+            max-width: 104px;
+            min-height: 36px;
+            box-sizing: border-box;
+            padding: 0 20px 0 10px;
+            border: 1px solid #e2d7c3;
+            border-radius: 9px;
+            background: #fff;
+            color: #211d14;
+            font: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            appearance: auto;
+        }
+        #membersSection .member-save-select:focus {
+            outline: 2px solid rgba(216,179,50,.28);
+            outline-offset: 1px;
+        }
+        #membersSection .member-save-select option { background: #fff; color: #211d14; }
+
+
+        /* Manage Members uses the same Windows-style multi-row selection as Attendance History. */
+        #membersSection .members-grid tbody tr.member-row {
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #membersSection .members-grid tbody tr.member-row.member-row-selected > td {
+            background: #dce9fb !important;
+            color: #172b4d;
+        }
+        #membersSection .members-grid tbody tr.member-row.member-row-selected:hover > td {
+            background: #cbdcf5 !important;
+        }
+        #membersSection .member-bulk-delete-button {
+            height: 36px;
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 9px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        #membersSection .member-bulk-delete-button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+
+
+        /* =========================================================
+           MOBILE: SHOW THE DESKTOP ADMIN UI AT A FIT-TO-SCREEN SCALE
+           Do not rearrange individual cards, toolbars, or tables. The
+           viewport script above gives touch phones a 1280px CSS viewport
+           and an initial zoom matched to the physical screen width.
+           Only the desktop sidebar is hidden on phone-like devices.
+           ========================================================= */
+        @media (pointer: coarse) and (hover: none) {
+            html,
+            body {
+                width: 1280px !important;
+                min-width: 1280px !important;
+                min-height: 100% !important;
+            }
+
+            .admin-layout {
+                display: flex !important;
+                width: 1280px !important;
+                min-width: 1280px !important;
+                min-height: 100vh !important;
+            }
+
+            .admin-sidebar {
+                display: none !important;
+            }
+
+            .admin-main {
+                width: 1280px !important;
+                min-width: 1280px !important;
+                max-width: none !important;
+                margin-left: 0 !important;
+                padding: 34px 38px 45px !important;
+            }
+
+            .admin-content {
+                width: 100% !important;
+                max-width: 1450px !important;
+                margin: 0 auto !important;
+            }
+        }
+
+
+
+        .mobile-menu-spacer {
+            display: none;
+        }
+        @media (pointer: coarse) and (hover: none) {
+            /* Reserve room for the fixed hamburger so it never covers page content. */
+            .mobile-menu-spacer {
+                display: block !important;
+                width: 1280px !important;
+                min-width: 1280px !important;
+                height: 82px !important;
+                min-height: 82px !important;
+                flex: 0 0 82px !important;
+            }
+        }
+
+        /* Mobile navigation access: keep the desktop-scaled page, but expose
+           the original sidebar through a compact fixed hamburger control. */
+        #mobileMenuButton {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            width: 54px;
+            height: 54px;
+            border: 1px solid rgba(212, 175, 55, .65);
+            border-radius: 12px;
+            background: #17150f;
+            color: #f2cc4d;
+            box-shadow: 0 4px 16px rgba(0,0,0,.28);
+            z-index: 1202;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 29px;
+            line-height: 1;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #mobileMenuButton:focus-visible {
+            outline: 3px solid #f2cc4d;
+            outline-offset: 3px;
+        }
+        #mobileMenuBackdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.48);
+            z-index: 1200;
+        }
+        @media (pointer: coarse) and (hover: none) {
+            #mobileMenuButton { display: flex !important; }
+            body.mobile-nav-open #mobileMenuBackdrop { display: block !important; }
+            body.mobile-nav-open .admin-sidebar {
+                display: flex !important;
+                position: fixed !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                width: 255px !important;
+                min-width: 255px !important;
+                max-width: 255px !important;
+                height: 100vh !important;
+                height: 100dvh !important;
+                padding: 26px 16px 18px !important;
+                overflow-y: auto !important;
+                transform: translateX(0) !important;
+                z-index: 1201 !important;
+                box-shadow: 10px 0 28px rgba(0,0,0,.28);
+            }
+        }
+
+
+/* Prevent text highlighting while a mobile long-press row selection is active. */
+body.saints-touch-row-selecting,
+body.saints-touch-row-selecting * {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+</style>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='phone.css') }}">
 
@@ -2579,6 +3297,13 @@
     data-settings-message="{{ settings_message|e }}"
 >
 
+<button type="button" id="mobileMenuButton" aria-label="Open navigation menu"
+        aria-controls="adminSidebar" aria-expanded="false" title="Navigation">
+    <span aria-hidden="true">☰</span>
+</button>
+<div id="mobileMenuBackdrop" aria-hidden="true"></div>
+<div class="mobile-menu-spacer" aria-hidden="true"></div>
+
 <div class="admin-layout">
 
 
@@ -2586,7 +3311,7 @@
          SIDEBAR
          ========================================================= -->
 
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="adminSidebar">
 
         <div class="sidebar-brand">
 
@@ -2679,9 +3404,9 @@
                     Notifications
                 </span>
 
-                {% if pending_registration_count > 0 %}
+                {% if pending_registration_count + (expired_members|length) > 0 %}
                     <span class="notification-badge">
-                        {{ pending_registration_count }}
+                        {{ pending_registration_count + (expired_members|length) }}
                     </span>
                 {% endif %}
 
@@ -3124,8 +3849,7 @@
                     </div>
 
                     <div class="header-date">
-                        {{ pending_registration_count }}
-                        {{ 'Pending Registration' if pending_registration_count == 1 else 'Pending Registrations' }}
+                        {{ pending_registration_count }} Pending · {{ expired_members|length }} Expired
                     </div>
 
                 </div>
@@ -3144,7 +3868,7 @@
 
                 <div class="notification-panel">
 
-                    {% if pending_registrations %}
+                    {% if pending_registrations or expired_members %}
 
                         <div class="notification-list">
 
@@ -3172,6 +3896,11 @@
                                             {{ registration["phone"] }}
 
                                             <br>
+                                            Requested membership:
+                                            {{ registration["membership_duration"] }}
+                                            {{ registration["membership_unit"] }}{{ 's' if registration["membership_duration"] != 1 else '' }}
+
+                                            <br>
 
                                             Submitted:
                                             {{ registration["submitted_at"] }}
@@ -3190,7 +3919,7 @@
                                             action="{{ url_for('accept_registration', registration_id=registration['id']) }}"
                                         >
 
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                                             <button
                                                 type="submit"
@@ -3210,7 +3939,7 @@
                                             action="{{ url_for('reject_registration', registration_id=registration['id']) }}"
                                         >
 
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                                             <button
                                                 type="submit"
@@ -3218,6 +3947,72 @@
                                                 onclick="return confirm('Reject this registration and treat this customer as a guest? The Customer ID will be released for future use.')"
                                             >
                                                 Reject
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            {% endfor %}
+
+                            {% for member in expired_members %}
+
+                                <div class="registration-request">
+
+                                    <div class="registration-request-main">
+
+                                        <h2 class="registration-request-title">
+                                            {{ member["surname"] }}, {{ member["first_name"] }}
+                                            <span style="display:inline-block;margin-left:7px;padding:4px 8px;border-radius:20px;background:#fef2f2;color:#b91c1c;font-size:9px;font-weight:800;vertical-align:middle;">
+                                                EXPIRED
+                                            </span>
+                                        </h2>
+
+                                        <div class="registration-request-meta">
+
+                                            <span class="registration-request-id">
+                                                {{ "%04d"|format(member["id"]) }}
+                                            </span>
+
+                                            Customer ID
+
+                                            <br>
+
+                                            Phone:
+                                            {{ member["phone"] }}
+
+                                            <br>
+
+                                            Membership expired:
+                                            {{ member["membership_expires_at"][:10] }}
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="registration-request-actions" style="flex-wrap:wrap;">
+
+                                        <button
+                                            type="button"
+                                            class="registration-action registration-accept"
+                                            onclick="openMembershipRenewalModal('/admin/members/renew/{{ member['id'] }}')"
+                                        >
+                                            Renew
+                                        </button>
+
+                                        <form
+                                            method="POST"
+                                            action="/admin/members/stop/{{ member['id'] }}"
+                                            class="notification-action-form"
+                                            onsubmit="window.adminMutationInProgress = true; sessionStorage.setItem('adminActiveSection', 'notifications'); return confirm('Mark this membership as inactive?');"
+                                        >
+
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                            <button type="submit" class="registration-action registration-reject">
+                                                Stop
                                             </button>
 
                                         </form>
@@ -3238,7 +4033,7 @@
                                 🔔
                             </div>
 
-                            No pending membership registrations.
+                            No notifications at the moment.
 
                         </div>
 
@@ -3246,8 +4041,41 @@
 
                 </div>
 
+                {% if membership_message %}
+                    <div class="registration-alert {{ 'success' if membership_status == 'success' else 'error' }}">
+                        {{ membership_message }}
+                    </div>
+                {% endif %}
+
             </section>
 
+
+
+            <div id="membershipRenewalModal" class="membership-renewal-modal" aria-hidden="true">
+                <div class="membership-renewal-dialog" role="dialog" aria-modal="true" aria-labelledby="membershipRenewalTitle">
+                    <h2 id="membershipRenewalTitle">Renew Membership</h2>
+                    <p>Select the membership period, then enter how many months or weeks to add.</p>
+                    <form id="membershipRenewalForm" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="membership-renewal-field">
+                            <label for="renewalUnit">Membership Period</label>
+                            <select id="renewalUnit" name="membership_unit" required>
+                                <option value="" selected disabled>Select Month or Week</option>
+                                <option value="month">Month</option>
+                                <option value="week">Week</option>
+                            </select>
+                        </div>
+                        <div id="renewalDurationGroup" class="membership-renewal-field" hidden>
+                            <label id="renewalDurationLabel" for="renewalDuration">Number of months</label>
+                            <input id="renewalDuration" name="membership_duration" type="number" min="1" max="120" step="1" placeholder="Enter number" value="" disabled required>
+                        </div>
+                        <div class="membership-renewal-actions">
+                            <button type="button" class="membership-renewal-cancel" onclick="closeMembershipRenewalModal()">Cancel</button>
+                            <button type="submit" class="membership-renewal-confirm">Confirm Renewal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             <!-- =================================================
                  MANAGE MEMBERS
@@ -3279,6 +4107,12 @@
                 </div>
 
 
+                {% if membership_message %}
+                    <div class="registration-alert {{ 'success' if membership_status == 'success' else 'error' }}">
+                        {{ membership_message }}
+                    </div>
+                {% endif %}
+
                 <div class="content-panel">
 
 
@@ -3302,31 +4136,29 @@
 
                         </div>
 
+                        <div class="member-export-actions">
+                            <select
+                                id="saveMembersButton"
+                                class="member-save-select"
+                                aria-label="Save members as"
+                                onchange="if (this.value) { exportMembers(this.value); this.selectedIndex = 0; }"
+                            >
+                                <option value="" selected disabled>Save As</option>
+                                <option value="excel">Excel (.xlsx)</option>
+                                <option value="pdf">PDF (.pdf)</option>
+                                <option value="word">Word (.docx)</option>
+                            </select>
+                        </div>
 
-                        <select
-                            id="memberFilter"
-                            class="member-filter"
-                            onchange="filterMembers()"
+                        <button
+                            type="button"
+                            id="removeSelectedMembersButton"
+                            class="history-delete-button member-bulk-delete-button"
+                            onclick="removeSelectedMembers()"
+                            disabled
                         >
-
-                            <option value="all">
-                                Search All
-                            </option>
-
-                            <option value="id">
-                                Customer ID
-                            </option>
-
-                            <option value="name">
-                                Full Name
-                            </option>
-
-                            <option value="phone">
-                                Phone Number
-                            </option>
-
-                        </select>
-
+                            Remove Selected
+                        </button>
 
                         <div class="sort-control member-sort-control" title="Sort members">
                             <svg class="sort-icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -3362,9 +4194,14 @@
                     </div>
 
 
-                    <!-- MEMBERS TABLE -->
+                    <div class="member-status-tabs" style="display:flex;gap:10px;margin:0 0 14px;">
+                        <button type="button" id="activeMembersTab" class="registration-action registration-accept" onclick="showMemberList('active')">Active Members ({{ members|length }})</button>
+                        <button type="button" id="inactiveMembersTab" class="registration-action registration-reject" onclick="showMemberList('inactive')">Inactive Members ({{ inactive_members|length }})</button>
+                    </div>
 
-                    <div class="table-wrapper members-grid">
+                    <!-- ACTIVE MEMBERS TABLE -->
+
+                    <div class="table-wrapper members-grid" id="activeMembersGrid">
 
                         <table
                             class="admin-table"
@@ -3390,6 +4227,9 @@
                                     <th>
                                         Registered
                                     </th>
+                                    <th>
+                                        Membership Expires
+                                    </th>
 
                                     <th>
                                         Actions
@@ -3409,6 +4249,7 @@
                                         <tr
                                             class="member-row"
                                             data-id="{{ '%04d'|format(member['id']) }}"
+                                            data-member-key="{{ member['id'] }}"
                                             data-name="{{ member['surname'] }} {{ member['first_name'] }}"
                                             data-phone="{{ member['phone'] }}"
                                             data-registered="{{ member['created_at'] }}"
@@ -3444,6 +4285,10 @@
 
 
                                             <td>
+                                                {{ member["membership_expires_at"][:10] if member["membership_expires_at"] else "Not set" }}
+                                            </td>
+
+                                            <td>
 
                                                 <div class="action-buttons">
 
@@ -3463,26 +4308,6 @@
                                                         Edit
                                                     </button>
 
-
-                                                    <!-- REMOVE -->
-
-                                                    <form
-                                                        method="POST"
-                                                        action="/admin/members/delete/{{ member['id'] }}"
-                                                        onsubmit="return removeMember(event, this);"
-                                                        style="margin: 0;"
-                                                    >
-
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                                                        <button
-                                                            type="submit"
-                                                            class="action-button delete-button"
-                                                        >
-                                                            Remove
-                                                        </button>
-
-                                                    </form>
 
 
                                                 </div>
@@ -3519,6 +4344,46 @@
 
                         </table>
 
+                    </div>
+
+                    <div class="table-wrapper members-grid" id="inactiveMembersGrid" style="display:none;">
+                        <table class="admin-table" id="inactiveMembersTable">
+                            <thead><tr>
+                                <th>Customer ID</th><th>Full Name</th><th>Phone Number</th>
+                                <th>Expired On</th><th>Status</th><th>Actions</th>
+                            </tr></thead>
+                            <tbody id="inactiveMembersTableBody">
+                            {% if inactive_members %}
+                                {% for member in inactive_members %}
+                                <tr class="member-row"
+                                    data-id="{{ '%04d'|format(member['id']) }}"
+                                    data-member-key="{{ member['id'] }}"
+                                    data-name="{{ member['surname'] }} {{ member['first_name'] }}"
+                                    data-phone="{{ member['phone'] }}"
+                                    data-registered="{{ member['created_at'] }}">
+                                    <td><span class="member-id-badge">{{ '%04d'|format(member['id']) }}</span></td>
+                                    <td><strong>{{ member["surname"] }}, {{ member["first_name"] }}</strong></td>
+                                    <td>{{ member["phone"] }}</td>
+                                    <td>{{ member["membership_expires_at"][:10] if member["membership_expires_at"] else "—" }}</td>
+                                    <td>{{ "Expired" if member["membership_status"] == "expired" else "Inactive" }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button
+                                                type="button"
+                                                class="action-button edit-button"
+                                                onclick="openMembershipRenewalModal('/admin/members/renew/{{ member['id'] }}', 'members')"
+                                            >
+                                                Renew
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="6"><div class="empty-state">No inactive members found.</div></td></tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
                     </div>
 
                 </div>
@@ -3620,7 +4485,18 @@
                             Clear
                         </a>
 
-                        <div class="history-selection-actions">
+                        <div class="history-selection-actions history-export-actions">
+                            <select
+                                id="saveAttendanceButton"
+                                class="history-save-button history-save-select"
+                                aria-label="Save attendance history as"
+                                onchange="if (this.value) { exportAttendanceHistory(this.value); this.selectedIndex = 0; }"
+                            >
+                                <option value="" selected disabled>Save As</option>
+                                <option value="excel">Excel (.xlsx)</option>
+                                <option value="pdf">PDF (.pdf)</option>
+                                <option value="word">Word (.docx)</option>
+                            </select>
                         </div>
 
                         <div class="history-selection-actions">
@@ -3650,16 +4526,6 @@
                             <thead>
 
                                 <tr>
-
-                                    <th>
-                                        <input
-                                            type="checkbox"
-                                            id="selectAllAttendance"
-                                            class="history-select-all"
-                                            title="Select all attendance records"
-                                            onchange="toggleAllAttendanceRecords(this.checked)"
-                                        >
-                                    </th>
 
                                     <th>
                                         ID
@@ -3696,17 +4562,7 @@
 
                                     {% for record in attendance_history %}
 
-                                        <tr>
-
-                                            <td>
-                                                <input
-                                                    type="checkbox"
-                                                    class="history-row-checkbox"
-                                                    name="attendance_record"
-                                                    value="{{ record['attendance_source'] }}:{{ record['attendance_id'] }}"
-                                                    onchange="updateAttendanceDeleteButton()"
-                                                >
-                                            </td>
+                                        <tr data-attendance-key="{{ record['attendance_source'] }}:{{ record['attendance_id'] }}">
 
                                             <td>
 
@@ -3782,7 +4638,7 @@
 
                                     <tr>
 
-                                        <td colspan="7">
+                                        <td colspan="6">
 
                                             <div class="empty-state">
 
@@ -4236,6 +5092,36 @@
 
 
 <!-- =========================================================
+     MANAGE MEMBERS MASTER KEY MODAL
+     ========================================================= -->
+<div id="memberMasterKeyModal" class="attendance-master-key-modal">
+    <div class="attendance-master-key-box">
+        <h2 class="attendance-master-key-title">Master Key Verification</h2>
+        <p class="attendance-master-key-message">
+            Enter the Master Key password to confirm removal of the selected member(s). Their attendance history will be preserved.
+        </p>
+        <label for="memberMasterKeyInput" class="attendance-master-key-label">Master Key Password</label>
+        <input
+            type="password"
+            id="memberMasterKeyInput"
+            class="attendance-master-key-input"
+            placeholder="Enter Master Key password"
+            autocomplete="off"
+        >
+        <label class="attendance-master-key-show">
+            <input type="checkbox" onchange="toggleMemberMasterKeyVisibility(this.checked)">
+            <span>Show Password</span>
+        </label>
+        <div id="memberMasterKeyError" class="attendance-master-key-error" role="alert"></div>
+        <div class="attendance-master-key-actions">
+            <button type="button" class="attendance-master-key-action attendance-master-key-cancel" onclick="closeMemberMasterKeyModal()">Cancel</button>
+            <button type="button" class="attendance-master-key-action attendance-master-key-submit" id="memberMasterKeySubmit" onclick="submitMemberRemoval()">Confirm Removal</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- =========================================================
      QR CODE MODAL
      ========================================================= -->
 
@@ -4526,6 +5412,8 @@
 
 
 
+
+
 <script>
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -4535,82 +5423,201 @@
        ATTENDANCE HISTORY DELETE
        ========================================================= */
 
-    function getSelectedAttendanceRecords() {
+    // Attendance History supports Windows-style row selection.
+    const selectedAttendanceKeys = new Set();
+    let attendanceSelectionAnchor = null;
+    let attendanceDragSelecting = false;
 
-        return Array.from(
-            document.querySelectorAll(
-                ".history-row-checkbox:checked"
-            )
-        ).map(
-            function(checkbox) {
-                return checkbox.value;
-            }
-        );
-
+    function getAttendanceRows() {
+        const section = document.getElementById("attendanceHistorySection");
+        return section ? Array.from(section.querySelectorAll("tbody tr[data-attendance-key]")) : [];
     }
 
+    function getSelectedAttendanceRecords() {
+        return Array.from(selectedAttendanceKeys);
+    }
 
     function updateAttendanceDeleteButton() {
-
-        const checkboxes =
-            document.querySelectorAll(
-                ".history-row-checkbox"
-            );
-
-        const selected =
-            document.querySelectorAll(
-                ".history-row-checkbox:checked"
-            );
-
-        const deleteButton =
-            document.getElementById(
-                "deleteAttendanceButton"
-            );
-
-        const selectAll =
-            document.getElementById(
-                "selectAllAttendance"
-            );
-
+        const deleteButton = document.getElementById("deleteAttendanceButton");
         if (deleteButton) {
-            deleteButton.disabled =
-                selected.length === 0;
+            deleteButton.disabled = selectedAttendanceKeys.size === 0;
         }
 
-        if (selectAll) {
-
-            if (checkboxes.length === 0) {
-                selectAll.checked = false;
-                selectAll.indeterminate = false;
-            }
-            else {
-                selectAll.checked =
-                    selected.length === checkboxes.length;
-
-                selectAll.indeterminate =
-                    selected.length > 0 &&
-                    selected.length < checkboxes.length;
-            }
-
-        }
-
+        getAttendanceRows().forEach((row) => {
+            row.classList.toggle(
+                "attendance-row-selected",
+                selectedAttendanceKeys.has(row.dataset.attendanceKey)
+            );
+            row.setAttribute(
+                "aria-selected",
+                selectedAttendanceKeys.has(row.dataset.attendanceKey) ? "true" : "false"
+            );
+        });
     }
 
+    function clearAttendanceSelection() {
+        selectedAttendanceKeys.clear();
+        attendanceSelectionAnchor = null;
+        attendanceDragSelecting = false;
+        updateAttendanceDeleteButton();
+    }
 
-    function toggleAllAttendanceRecords(checked) {
+    function selectAttendanceRange(fromKey, toKey, additive) {
+        const rows = getAttendanceRows().filter((row) => row.style.display !== "none");
+        const fromIndex = rows.findIndex((row) => row.dataset.attendanceKey === fromKey);
+        const toIndex = rows.findIndex((row) => row.dataset.attendanceKey === toKey);
+        if (fromIndex < 0 || toIndex < 0) return;
 
-        document.querySelectorAll(
-            ".history-row-checkbox"
-        ).forEach(
-            function(checkbox) {
-                checkbox.checked = checked;
+        if (!additive) selectedAttendanceKeys.clear();
+        const first = Math.min(fromIndex, toIndex);
+        const last = Math.max(fromIndex, toIndex);
+        for (let index = first; index <= last; index += 1) {
+            selectedAttendanceKeys.add(rows[index].dataset.attendanceKey);
+        }
+        updateAttendanceDeleteButton();
+    }
+
+    function selectAllVisibleAttendanceRecords() {
+        getAttendanceRows().forEach((row) => {
+            if (row.style.display !== "none") {
+                selectedAttendanceKeys.add(row.dataset.attendanceKey);
             }
-        );
+        });
+        updateAttendanceDeleteButton();
+    }
+
+    function initializeAttendanceRowSelection() {
+        const section = document.getElementById("attendanceHistorySection");
+        const tbody = section ? section.querySelector(".attendance-history-grid tbody") : null;
+        if (!tbody || tbody.dataset.rowSelectionReady === "true") return;
+        tbody.dataset.rowSelectionReady = "true";
+
+        tbody.addEventListener("pointerdown", (event) => {
+            if (event.button !== 0) return;
+            const row = event.target.closest("tr[data-attendance-key]");
+            if (!row) {
+                if (event.target.closest("tbody")) clearAttendanceSelection();
+                return;
+            }
+            if (row.style.display === "none") return;
+            if (event.target.closest("a, button, input, select, textarea, label")) return;
+
+            const key = row.dataset.attendanceKey;
+            const additive = event.ctrlKey || event.metaKey;
+            const range = event.shiftKey;
+
+            // Touch selection is handled by the long-press + slide handlers below.
+            if (event.pointerType === "touch") return;
+
+            if (range && attendanceSelectionAnchor) {
+                selectAttendanceRange(attendanceSelectionAnchor, key, additive);
+                attendanceDragSelecting = false;
+            } else if (additive) {
+                if (selectedAttendanceKeys.has(key)) selectedAttendanceKeys.delete(key);
+                else selectedAttendanceKeys.add(key);
+                attendanceSelectionAnchor = key;
+                attendanceDragSelecting = false;
+                updateAttendanceDeleteButton();
+            } else {
+                selectedAttendanceKeys.clear();
+                selectedAttendanceKeys.add(key);
+                attendanceSelectionAnchor = key;
+                attendanceDragSelecting = true;
+                updateAttendanceDeleteButton();
+                event.preventDefault();
+            }
+        });
+
+        tbody.addEventListener("pointerover", (event) => {
+            if (!attendanceDragSelecting) return;
+            const row = event.target.closest("tr[data-attendance-key]");
+            if (!row || row.style.display === "none" || !attendanceSelectionAnchor) return;
+            selectAttendanceRange(attendanceSelectionAnchor, row.dataset.attendanceKey, false);
+        });
+
+        // Mobile: hold a row briefly, then slide across rows to select a range.
+        let attendanceTouchTimer = null;
+        let attendanceTouchStart = null;
+        let attendanceTouchSelecting = false;
+        const attendanceLongPressMs = 420;
+        const attendanceMoveTolerance = 12;
+
+        tbody.addEventListener("touchstart", (event) => {
+            const touch = event.touches[0];
+            const row = event.target.closest("tr[data-attendance-key]");
+            if (!touch || !row || row.style.display === "none") return;
+            if (event.target.closest("a, button, input, select, textarea, label")) return;
+
+            clearTimeout(attendanceTouchTimer);
+            attendanceTouchSelecting = false;
+            attendanceTouchStart = {
+                key: row.dataset.attendanceKey,
+                x: touch.clientX,
+                y: touch.clientY
+            };
+            attendanceTouchTimer = setTimeout(() => {
+                if (!attendanceTouchStart) return;
+                attendanceTouchSelecting = true;
+                attendanceSelectionAnchor = attendanceTouchStart.key;
+                selectedAttendanceKeys.clear();
+                selectAttendanceRange(attendanceSelectionAnchor, attendanceSelectionAnchor, false);
+                document.body.classList.add("saints-touch-row-selecting");
+            }, attendanceLongPressMs);
+        }, { passive: true });
+
+        document.addEventListener("touchmove", (event) => {
+            if (!attendanceTouchStart) return;
+            const touch = event.touches[0];
+            if (!touch) return;
+
+            if (!attendanceTouchSelecting) {
+                const dx = touch.clientX - attendanceTouchStart.x;
+                const dy = touch.clientY - attendanceTouchStart.y;
+                if (Math.hypot(dx, dy) > attendanceMoveTolerance) {
+                    clearTimeout(attendanceTouchTimer);
+                    attendanceTouchStart = null;
+                }
+                return;
+            }
+
+            // Once long-press selection starts, prevent page scrolling so the
+            // finger can travel over the rows without losing the selection gesture.
+            event.preventDefault();
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            const row = target && target.closest("tr[data-attendance-key]");
+            if (row && row.style.display !== "none") {
+                selectAttendanceRange(attendanceSelectionAnchor, row.dataset.attendanceKey, false);
+            }
+        }, { passive: false });
+
+        const finishAttendanceTouchSelection = () => {
+            clearTimeout(attendanceTouchTimer);
+            attendanceTouchTimer = null;
+            attendanceTouchStart = null;
+            attendanceTouchSelecting = false;
+            document.body.classList.remove("saints-touch-row-selecting");
+        };
+        document.addEventListener("touchend", finishAttendanceTouchSelection, { passive: true });
+        document.addEventListener("touchcancel", finishAttendanceTouchSelection, { passive: true });
+
+        document.addEventListener("pointerup", () => {
+            attendanceDragSelecting = false;
+        });
+        document.addEventListener("pointercancel", () => {
+            attendanceDragSelecting = false;
+        });
+
+        // Ctrl+A selects every record currently visible after search/date filtering.
+        document.addEventListener("keydown", (event) => {
+            if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "a") return;
+            if (!section || section.classList.contains("hidden")) return;
+            if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
+            event.preventDefault();
+            selectAllVisibleAttendanceRecords();
+        });
 
         updateAttendanceDeleteButton();
-
     }
-
 
     function openAttendanceDeleteConfirmation() {
 
@@ -5030,6 +6037,7 @@
 
         const searchInput = document.getElementById("historySearchInput");
         const dateInput = document.getElementById("historyDateInput");
+        clearAttendanceSelection();
         const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
         const selectedDate = dateInput ? dateInput.value : "";
         const table = section.querySelector("table.admin-table");
@@ -5052,7 +6060,7 @@
             // Attendance timestamps are stored/displayed as "Month DD, YYYY | time".
             // Build that exact date from the date input instead of guessing the locale
             // of a slash-separated date, which could hide every row.
-            const checkInText = (cells.length > 5 ? cells[5].innerText : "").trim();
+            const checkInText = (cells.length > 4 ? cells[4].innerText : "").trim();
             let matchesDate = !selectedDate;
 
             if (selectedDate) {
@@ -5092,6 +6100,8 @@
 
 
     document.addEventListener("DOMContentLoaded", function () {
+        initializeAttendanceRowSelection();
+        initializeMemberRowSelection();
         const searchInput = document.getElementById("historySearchInput");
         const dateInput = document.getElementById("historyDateInput");
 
@@ -5117,8 +6127,8 @@
         sortAttendanceTable(
             historyTable,
             normalizedSort,
-            2,
-            5
+            1,
+            4
         );
 
         try {
@@ -5145,8 +6155,8 @@
         const currentBody = currentTable ? currentTable.querySelector("tbody") : null;
         if (!currentBody) return;
 
-        // Do not replace rows while the user is selecting records for deletion.
-        if (section.querySelector(".history-row-checkbox:checked")) return;
+        // Do not replace rows while the user has selected records for deletion.
+        if (selectedAttendanceKeys.size > 0) return;
 
         attendanceHistoryRefreshInProgress = true;
         try {
@@ -5180,17 +6190,14 @@
             const freshCount = freshSection.querySelector(".history-count");
             if (currentCount && freshCount) currentCount.textContent = freshCount.textContent.trim();
 
-            const selectAll = document.getElementById("selectAllAttendance");
-            if (selectAll) selectAll.checked = false;
-            if (typeof updateAttendanceDeleteButton === "function") {
-                updateAttendanceDeleteButton();
-            }
+            clearAttendanceSelection();
+            initializeAttendanceRowSelection();
             if (typeof applyAttendanceHistoryFilters === "function") {
                 applyAttendanceHistoryFilters();
             }
 
             const selectedSort = sortInput ? sortInput.value : "date";
-            sortAttendanceTable(currentTable, selectedSort === "name" ? "name" : "date", 2, 5);
+            sortAttendanceTable(currentTable, selectedSort === "name" ? "name" : "date", 1, 4);
         } catch (error) {
             console.error("Unable to refresh Attendance History:", error);
         } finally {
@@ -5649,8 +6656,358 @@
 
 
     /* =========================================================
+       MANAGE MEMBERS — WINDOWS-STYLE ROW SELECTION
+       ========================================================= */
+
+    const selectedMemberKeys = new Set();
+    let memberSelectionAnchor = null;
+    let memberDragSelecting = false;
+
+    function getCurrentMemberGrid() {
+        const inactiveGrid = document.getElementById("inactiveMembersGrid");
+        return inactiveGrid && inactiveGrid.style.display !== "none"
+            ? inactiveGrid
+            : document.getElementById("activeMembersGrid");
+    }
+
+    function getCurrentMemberRows(visibleOnly = false) {
+        const grid = getCurrentMemberGrid();
+        if (!grid) return [];
+        const rows = Array.from(grid.querySelectorAll("tbody tr.member-row"));
+        return visibleOnly ? rows.filter(row => row.style.display !== "none") : rows;
+    }
+
+    function updateMemberSelectionUI() {
+        const button = document.getElementById("removeSelectedMembersButton");
+        if (button) {
+            button.disabled = selectedMemberKeys.size === 0;
+            button.textContent = selectedMemberKeys.size
+                ? `Remove Selected (${selectedMemberKeys.size})`
+                : "Remove Selected";
+        }
+
+        document.querySelectorAll("#membersSection tr.member-row[data-member-key]").forEach(row => {
+            const selected = selectedMemberKeys.has(row.dataset.memberKey);
+            row.classList.toggle("member-row-selected", selected);
+            row.setAttribute("aria-selected", selected ? "true" : "false");
+        });
+    }
+
+    function clearMemberSelection() {
+        selectedMemberKeys.clear();
+        memberSelectionAnchor = null;
+        memberDragSelecting = false;
+        updateMemberSelectionUI();
+    }
+
+    function selectMemberRange(fromKey, toKey, additive = false) {
+        const rows = getCurrentMemberRows(true);
+        const fromIndex = rows.findIndex(row => row.dataset.memberKey === fromKey);
+        const toIndex = rows.findIndex(row => row.dataset.memberKey === toKey);
+        if (fromIndex < 0 || toIndex < 0) return;
+
+        if (!additive) selectedMemberKeys.clear();
+        const first = Math.min(fromIndex, toIndex);
+        const last = Math.max(fromIndex, toIndex);
+        for (let index = first; index <= last; index += 1) {
+            selectedMemberKeys.add(rows[index].dataset.memberKey);
+        }
+        updateMemberSelectionUI();
+    }
+
+    function selectAllVisibleMembers() {
+        getCurrentMemberRows(true).forEach(row => {
+            selectedMemberKeys.add(row.dataset.memberKey);
+        });
+        updateMemberSelectionUI();
+    }
+
+    function initializeMemberRowSelection() {
+        const section = document.getElementById("membersSection");
+        if (!section || section.dataset.rowSelectionReady === "true") return;
+        section.dataset.rowSelectionReady = "true";
+
+        // Delegation keeps selection working when the members section is refreshed in-place.
+        section.addEventListener("pointerdown", event => {
+            if (event.button !== 0) return;
+            const grid = event.target.closest(".members-grid");
+            const row = event.target.closest("tr.member-row[data-member-key]");
+
+            if (!row) {
+                if (grid) clearMemberSelection();
+                return;
+            }
+            if (row.style.display === "none") return;
+            if (event.target.closest("a, button, input, select, textarea, label")) return;
+
+            const key = row.dataset.memberKey;
+            const additive = event.ctrlKey || event.metaKey;
+
+            // Touch selection is handled by the long-press + slide handlers below.
+            if (event.pointerType === "touch") return;
+
+            const range = event.shiftKey;
+            if (range && memberSelectionAnchor) {
+                selectMemberRange(memberSelectionAnchor, key, additive);
+                memberDragSelecting = false;
+            } else if (additive) {
+                if (selectedMemberKeys.has(key)) selectedMemberKeys.delete(key);
+                else selectedMemberKeys.add(key);
+                memberSelectionAnchor = key;
+                memberDragSelecting = false;
+                updateMemberSelectionUI();
+            } else {
+                selectedMemberKeys.clear();
+                selectedMemberKeys.add(key);
+                memberSelectionAnchor = key;
+                memberDragSelecting = true;
+                updateMemberSelectionUI();
+                event.preventDefault();
+            }
+        });
+
+        section.addEventListener("pointerover", event => {
+            if (!memberDragSelecting) return;
+            const row = event.target.closest("tr.member-row[data-member-key]");
+            if (!row || row.style.display === "none" || !memberSelectionAnchor) return;
+            selectMemberRange(memberSelectionAnchor, row.dataset.memberKey, false);
+        });
+
+        // Mobile: long-press a member, then slide over adjacent rows to select them.
+        let memberTouchTimer = null;
+        let memberTouchStart = null;
+        let memberTouchSelecting = false;
+        const memberLongPressMs = 420;
+        const memberMoveTolerance = 12;
+
+        section.addEventListener("touchstart", (event) => {
+            const touch = event.touches[0];
+            const row = event.target.closest("tr.member-row[data-member-key]");
+            if (!touch || !row || row.style.display === "none") return;
+            if (event.target.closest("a, button, input, select, textarea, label")) return;
+
+            clearTimeout(memberTouchTimer);
+            memberTouchSelecting = false;
+            memberTouchStart = {
+                key: row.dataset.memberKey,
+                x: touch.clientX,
+                y: touch.clientY
+            };
+            memberTouchTimer = setTimeout(() => {
+                if (!memberTouchStart) return;
+                memberTouchSelecting = true;
+                memberSelectionAnchor = memberTouchStart.key;
+                selectedMemberKeys.clear();
+                selectMemberRange(memberSelectionAnchor, memberSelectionAnchor, false);
+                document.body.classList.add("saints-touch-row-selecting");
+            }, memberLongPressMs);
+        }, { passive: true });
+
+        document.addEventListener("touchmove", (event) => {
+            if (!memberTouchStart) return;
+            const touch = event.touches[0];
+            if (!touch) return;
+
+            if (!memberTouchSelecting) {
+                const dx = touch.clientX - memberTouchStart.x;
+                const dy = touch.clientY - memberTouchStart.y;
+                if (Math.hypot(dx, dy) > memberMoveTolerance) {
+                    clearTimeout(memberTouchTimer);
+                    memberTouchStart = null;
+                }
+                return;
+            }
+
+            event.preventDefault();
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            const row = target && target.closest("tr.member-row[data-member-key]");
+            if (row && row.style.display !== "none") {
+                selectMemberRange(memberSelectionAnchor, row.dataset.memberKey, false);
+            }
+        }, { passive: false });
+
+        const finishMemberTouchSelection = () => {
+            clearTimeout(memberTouchTimer);
+            memberTouchTimer = null;
+            memberTouchStart = null;
+            memberTouchSelecting = false;
+            document.body.classList.remove("saints-touch-row-selecting");
+        };
+        document.addEventListener("touchend", finishMemberTouchSelection, { passive: true });
+        document.addEventListener("touchcancel", finishMemberTouchSelection, { passive: true });
+
+        document.addEventListener("pointerup", () => { memberDragSelecting = false; });
+        document.addEventListener("pointercancel", () => { memberDragSelecting = false; });
+
+        document.addEventListener("keydown", event => {
+            if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "a") return;
+            if (!section || section.classList.contains("hidden")) return;
+            if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
+            event.preventDefault();
+            selectAllVisibleMembers();
+        });
+
+        updateMemberSelectionUI();
+    }
+
+    function removeSelectedMembers() {
+        const memberIds = Array.from(selectedMemberKeys);
+        if (!memberIds.length) return;
+
+        const confirmed = window.confirm(
+            memberIds.length === 1
+                ? "Remove this member? Their attendance history will be preserved. You will need the Master Key password."
+                : `Remove these ${memberIds.length} members? Their attendance history will be preserved. You will need the Master Key password.`
+        );
+        if (!confirmed) return;
+
+        const modal = document.getElementById("memberMasterKeyModal");
+        const input = document.getElementById("memberMasterKeyInput");
+        const error = document.getElementById("memberMasterKeyError");
+        if (!modal || !input) return;
+        if (error) error.textContent = "";
+        input.value = "";
+        modal.classList.add("show");
+        window.setTimeout(() => input.focus(), 50);
+    }
+
+    function closeMemberMasterKeyModal() {
+        const modal = document.getElementById("memberMasterKeyModal");
+        const input = document.getElementById("memberMasterKeyInput");
+        const error = document.getElementById("memberMasterKeyError");
+        const submit = document.getElementById("memberMasterKeySubmit");
+        if (modal) modal.classList.remove("show");
+        if (input) input.value = "";
+        if (error) error.textContent = "";
+        if (submit) {
+            submit.disabled = false;
+            submit.textContent = "Confirm Removal";
+        }
+    }
+
+    function toggleMemberMasterKeyVisibility(show) {
+        const input = document.getElementById("memberMasterKeyInput");
+        if (input) input.type = show ? "text" : "password";
+    }
+
+    async function submitMemberRemoval() {
+        const memberIds = Array.from(selectedMemberKeys);
+        const input = document.getElementById("memberMasterKeyInput");
+        const error = document.getElementById("memberMasterKeyError");
+        const submit = document.getElementById("memberMasterKeySubmit");
+        if (!memberIds.length || !input) return;
+
+        const masterPassword = input.value;
+        if (!masterPassword) {
+            if (error) error.textContent = "Please enter the Master Key password.";
+            input.focus();
+            return;
+        }
+
+        const inactiveGrid = document.getElementById("inactiveMembersGrid");
+        const currentTab = inactiveGrid && inactiveGrid.style.display !== "none" ? "inactive" : "active";
+        const currentSearch = document.getElementById("memberSearch")?.value || "";
+        const currentSort = document.getElementById("memberSort")?.value || "date";
+        if (submit) {
+            submit.disabled = true;
+            submit.textContent = "Verifying...";
+        }
+        if (error) error.textContent = "";
+        window.adminMutationInProgress = true;
+
+        try {
+            const response = await fetch("/admin/members/delete-selected", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify({ member_ids: memberIds, master_password: masterPassword })
+            });
+
+            const result = await response.json().catch(() => ({}));
+            const removedCount = Number(result.removed || 0);
+            if (!response.ok || !result.success) {
+                if (error) error.textContent = result.message || "Unable to remove the selected members.";
+                window.adminMutationInProgress = false;
+                if (submit) {
+                    submit.disabled = false;
+                    submit.textContent = "Confirm Removal";
+                }
+                input.focus();
+                return;
+            }
+
+            closeMemberMasterKeyModal();
+            clearMemberSelection();
+            if (window.clearPendingDashboardRefresh) window.clearPendingDashboardRefresh();
+            window.dashboardDataRefreshPending = true;
+
+            await refreshMembersSection();
+            showMemberList(currentTab);
+            const refreshedSearch = document.getElementById("memberSearch");
+            const refreshedSort = document.getElementById("memberSort");
+            if (refreshedSearch) refreshedSearch.value = currentSearch;
+            if (refreshedSort) refreshedSort.value = currentSort;
+            filterMembers();
+
+            const successModal = document.getElementById("successModal");
+            const title = document.getElementById("successModalTitle");
+            const message = document.getElementById("successModalMessage");
+            if (successModal && title && message) {
+                title.textContent = removedCount === 1 ? "Member Removed Successfully" : "Members Removed Successfully";
+                message.textContent = `${removedCount} ${removedCount === 1 ? "member has" : "members have"} been removed successfully. Attendance history has been preserved.`;
+                successModal.classList.add("show");
+            }
+            if (Array.isArray(result.failed) && result.failed.length) {
+                window.alert(`${result.failed.length} selected member(s) could not be removed. The list has been refreshed; please review it and try again if needed.`);
+            }
+        } catch (requestError) {
+            if (error) error.textContent = requestError.message || "Unable to remove the selected members. Please try again.";
+            if (submit) {
+                submit.disabled = false;
+                submit.textContent = "Confirm Removal";
+            }
+        } finally {
+            window.adminMutationInProgress = false;
+            updateMemberSelectionUI();
+        }
+    }
+
+    const memberMasterKeyInput = document.getElementById("memberMasterKeyInput");
+    if (memberMasterKeyInput) {
+        memberMasterKeyInput.addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                submitMemberRemoval();
+            } else if (event.key === "Escape") {
+                closeMemberMasterKeyModal();
+            }
+        });
+    }
+
+
+    /* =========================================================
        MEMBER SORTING
        ========================================================= */
+
+    function showMemberList(type) {
+        const activeGrid = document.getElementById("activeMembersGrid");
+        const inactiveGrid = document.getElementById("inactiveMembersGrid");
+        const activeTab = document.getElementById("activeMembersTab");
+        const inactiveTab = document.getElementById("inactiveMembersTab");
+        if (!activeGrid || !inactiveGrid) return;
+        clearMemberSelection();
+        const showActive = type !== "inactive";
+        activeGrid.style.display = showActive ? "" : "none";
+        inactiveGrid.style.display = showActive ? "none" : "";
+        if (activeTab) activeTab.className = "registration-action " + (showActive ? "registration-accept" : "registration-reject");
+        if (inactiveTab) inactiveTab.className = "registration-action " + (!showActive ? "registration-accept" : "registration-reject");
+        filterMembers();
+    }
+
 
     function sortMembers() {
 
@@ -5739,138 +7096,40 @@
        ========================================================= */
 
     function filterMembers() {
+        const searchInput = document.getElementById("memberSearch");
+        if (!searchInput) return;
+        clearMemberSelection();
 
-        const searchInput =
-            document.getElementById(
-                "memberSearch"
-            );
-
-        const filter =
-            document.getElementById(
-                "memberFilter"
-            );
-
-        const rows =
-            document.querySelectorAll(
-                ".member-row"
-            );
-
-        const count =
-            document.getElementById(
-                "memberCount"
-            );
-
-
-        if (!searchInput || !filter) {
-            return;
-        }
-
-
-        const searchText =
-            searchInput.value
-                .toLowerCase()
-                .trim();
-
-
-        const selectedFilter =
-            filter.value;
-
-
+        const inactiveGrid = document.getElementById("inactiveMembersGrid");
+        const currentGrid = inactiveGrid && inactiveGrid.style.display !== "none"
+            ? inactiveGrid
+            : document.getElementById("activeMembersGrid");
+        const rows = currentGrid
+            ? currentGrid.querySelectorAll(".member-row")
+            : [];
+        const count = document.getElementById("memberCount");
+        const searchText = searchInput.value.toLowerCase().trim();
         let visibleCount = 0;
 
+        rows.forEach(function(row) {
+            const id = (row.dataset.id || "").toLowerCase();
+            const name = (row.dataset.name || "").toLowerCase();
+            const phone = (row.dataset.phone || "").toLowerCase();
+            const searchableText = id + " " + name + " " + phone;
+            const matches = searchableText.includes(searchText);
 
-        rows.forEach(
-            function(row) {
-
-                const id =
-                    (
-                        row.dataset.id || ""
-                    ).toLowerCase();
-
-                const name =
-                    (
-                        row.dataset.name || ""
-                    ).toLowerCase();
-
-                const phone =
-                    (
-                        row.dataset.phone || ""
-                    ).toLowerCase();
-
-
-                let searchableText = "";
-
-
-                if (
-                    selectedFilter === "id"
-                ) {
-
-                    searchableText = id;
-
-                }
-
-                else if (
-                    selectedFilter === "name"
-                ) {
-
-                    searchableText = name;
-
-                }
-
-                else if (
-                    selectedFilter === "phone"
-                ) {
-
-                    searchableText = phone;
-
-                }
-
-                else {
-
-                    searchableText =
-                        id + " " +
-                        name + " " +
-                        phone;
-
-                }
-
-
-                if (
-                    searchableText.includes(
-                        searchText
-                    )
-                ) {
-
-                    row.style.display = "";
-
-                    visibleCount++;
-
-                }
-
-                else {
-
-                    row.style.display = "none";
-
-                }
-
-            }
-        );
-
+            row.style.display = matches ? "" : "none";
+            if (matches) visibleCount++;
+        });
 
         if (count) {
-
-            count.textContent =
-                visibleCount +
-                (
-                    visibleCount === 1
-                        ? " member"
-                        : " members"
-                );
-
+            count.textContent = visibleCount +
+                (visibleCount === 1 ? " member" : " members");
         }
 
-
-        sortMembers();
+        if (!inactiveGrid || inactiveGrid.style.display === "none") {
+            sortMembers();
+        }
     }
 
 
@@ -7661,6 +8920,77 @@
         );
 
 
+
+        const membershipRenewalModal = document.getElementById("membershipRenewalModal");
+        const membershipRenewalForm = document.getElementById("membershipRenewalForm");
+        const renewalUnitSelect = document.getElementById("renewalUnit");
+        const renewalDurationGroup = document.getElementById("renewalDurationGroup");
+        const renewalDurationInput = document.getElementById("renewalDuration");
+        const renewalDurationLabel = document.getElementById("renewalDurationLabel");
+
+        let membershipRenewalReturnSection = "notifications";
+
+        window.openMembershipRenewalModal = function(actionUrl, returnSection = "notifications") {
+            if (!membershipRenewalModal || !membershipRenewalForm) return;
+            membershipRenewalReturnSection = returnSection;
+            membershipRenewalForm.action = actionUrl;
+            renewalUnitSelect.value = "";
+            renewalDurationInput.value = "";
+            renewalDurationInput.disabled = true;
+            renewalDurationGroup.hidden = true;
+            renewalDurationLabel.textContent = "Number of months";
+            membershipRenewalModal.classList.add("show");
+            membershipRenewalModal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+            renewalUnitSelect.focus();
+        };
+
+        window.closeMembershipRenewalModal = function() {
+            if (!membershipRenewalModal) return;
+            membershipRenewalModal.classList.remove("show");
+            membershipRenewalModal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        };
+
+        if (renewalUnitSelect) {
+            renewalUnitSelect.addEventListener("change", function() {
+                const selectedUnit = renewalUnitSelect.value;
+                const hasSelection = selectedUnit === "month" || selectedUnit === "week";
+                renewalDurationGroup.hidden = !hasSelection;
+                renewalDurationInput.disabled = !hasSelection;
+                renewalDurationInput.value = "";
+                renewalDurationLabel.textContent = selectedUnit === "week"
+                    ? "Number of weeks"
+                    : "Number of months";
+                if (hasSelection) renewalDurationInput.focus();
+            });
+        }
+
+        if (membershipRenewalForm) {
+            membershipRenewalForm.addEventListener("submit", function(event) {
+                if (!renewalUnitSelect.value || !renewalDurationInput.value || Number(renewalDurationInput.value) < 1) {
+                    event.preventDefault();
+                    if (!renewalUnitSelect.value) renewalUnitSelect.focus();
+                    else renewalDurationInput.focus();
+                    return;
+                }
+                window.adminMutationInProgress = true;
+                sessionStorage.setItem("adminActiveSection", membershipRenewalReturnSection);
+            });
+        }
+
+        if (membershipRenewalModal) {
+            membershipRenewalModal.addEventListener("click", function(event) {
+                if (event.target === membershipRenewalModal) window.closeMembershipRenewalModal();
+            });
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape" && membershipRenewalModal && membershipRenewalModal.classList.contains("show")) {
+                window.closeMembershipRenewalModal();
+            }
+        });
+
         const qrModal =
             document.getElementById(
                 "qrModal"
@@ -7685,6 +9015,82 @@
 </script>
 
     <script src="{{ url_for('static', filename='phone.js') }}"></script>
+
+    <script>
+    // Attendance History export modal and filtered file downloads.
+    // Keep this in its own inline script: browsers ignore inline code on a
+    // script element that also has a src attribute.
+    function exportAttendanceHistory(fileFormat) {
+        if (!["excel", "pdf", "word"].includes(fileFormat)) return;
+
+        const searchInput = document.getElementById("historySearchInput");
+        const dateInput = document.getElementById("historyDateInput");
+        const sortInput = document.querySelector('#attendanceHistorySection select[name="history_sort"]');
+        const params = new URLSearchParams();
+        params.set("history_search", searchInput ? searchInput.value.trim() : "");
+        params.set("history_date", dateInput ? dateInput.value : "");
+        params.set("history_sort", sortInput ? sortInput.value : "date");
+
+        window.location.assign("/admin/attendance/export/" + fileFormat + "?" + params.toString());
+    }
+
+
+    // Export the currently visible Active or Inactive member list and its search.
+    function exportMembers(fileFormat) {
+        if (!["excel", "pdf", "word"].includes(fileFormat)) return;
+
+        const searchInput = document.getElementById("memberSearch");
+        const sortInput = document.getElementById("memberSort");
+        const inactiveGrid = document.getElementById("inactiveMembersGrid");
+        const memberStatus = inactiveGrid && inactiveGrid.style.display !== "none"
+            ? "inactive" : "active";
+        const params = new URLSearchParams();
+        params.set("member_search", searchInput ? searchInput.value.trim() : "");
+        params.set("member_sort", sortInput ? sortInput.value : "date");
+        params.set("member_status", memberStatus);
+
+        window.location.assign("/admin/members/export/" + fileFormat + "?" + params.toString());
+    }
+    </script>
+
+
+<script>
+(function () {
+    const menuButton = document.getElementById("mobileMenuButton");
+    const backdrop = document.getElementById("mobileMenuBackdrop");
+    const sidebar = document.getElementById("adminSidebar");
+    if (!menuButton || !backdrop || !sidebar) return;
+
+    function closeMobileMenu() {
+        document.body.classList.remove("mobile-nav-open");
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute("aria-label", "Open navigation menu");
+        menuButton.innerHTML = '<span aria-hidden="true">☰</span>';
+    }
+    function openMobileMenu() {
+        document.body.classList.add("mobile-nav-open");
+        menuButton.setAttribute("aria-expanded", "true");
+        menuButton.setAttribute("aria-label", "Close navigation menu");
+        menuButton.innerHTML = '<span aria-hidden="true">×</span>';
+    }
+
+    menuButton.addEventListener("click", function () {
+        if (document.body.classList.contains("mobile-nav-open")) closeMobileMenu();
+        else openMobileMenu();
+    });
+    backdrop.addEventListener("click", closeMobileMenu);
+    sidebar.addEventListener("click", function (event) {
+        const navButton = event.target.closest(".sidebar-button");
+        if (navButton) closeMobileMenu();
+    });
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeMobileMenu();
+    });
+    window.addEventListener("resize", function () {
+        if (window.matchMedia("(pointer: fine)").matches) closeMobileMenu();
+    });
+})();
+</script>
 
 </body>
 
